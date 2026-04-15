@@ -6,7 +6,7 @@ from typing import Optional
 
 import httpx
 
-from lucky_number.config import Jogo, JOGOS
+from lucky_number.config import JOGOS, Jogo
 
 logger = logging.getLogger(__name__)
 
@@ -111,9 +111,7 @@ class CaixaAPIClient:
                         raise NotFoundError(f"Concurso {concurso} não encontrado")
 
                     if response.status_code != 200:
-                        raise CaixaAPIError(
-                            f"HTTP {response.status_code} para {url}"
-                        )
+                        raise CaixaAPIError(f"HTTP {response.status_code} para {url}")
 
                     data = response.json()
                     return self._parse_dezenas(data, jogo)

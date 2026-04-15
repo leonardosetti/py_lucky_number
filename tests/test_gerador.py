@@ -1,15 +1,16 @@
 """Testes para gerador de combinações."""
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
-from lucky_number.config import Jogo, MINIMO_INEGOCIAVEL
+import pytest
+
+from lucky_number.config import Jogo
 from lucky_number.models import ApostaRequest
-from lucky_number.services.gerador import (
-    GeradorDeApostas,
-    EspacoAmostralEsgotadoError,
-)
 from lucky_number.services.cache import Cache
+from lucky_number.services.gerador import (
+    EspacoAmostralEsgotadoError,
+    GeradorDeApostas,
+)
 
 
 @pytest.fixture
@@ -147,9 +148,9 @@ class TestEspacoAmostral:
             tuple(range(7, 13)),
         }
         mock_cache.get.return_value = historico_grande
-        
+
         gerador = GeradorDeApostas(cache=mock_cache, caixa_api=mock_api)
-        
+
         with pytest.raises(EspacoAmostralEsgotadoError):
             await gerador.gerar(
                 jogo=Jogo.MEGA_SENA,
@@ -162,14 +163,14 @@ class TestEspacoAmostral:
         """Não deve gerar combinação já sorteada."""
         sorteadas = {(1, 2, 3, 4, 5, 6)}
         mock_cache.get.return_value = sorteadas
-        
+
         gerador = GeradorDeApostas(cache=mock_cache, caixa_api=mock_api)
-        
+
         result = await gerador.gerar(
             jogo=Jogo.MEGA_SENA,
             quantidade_apostas=10,
             dezenas_por_aposta=6,
         )
-        
+
         for aposta in result.apostas:
             assert tuple(aposta) not in sorteadas

@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from lucky_number.config import Jogo, MINIMO_INEGOCIAVEL
+from lucky_number.config import Jogo
 from lucky_number.models import ApostaRequest, ApostaResponse, JogoInfo
 
 
@@ -68,7 +68,6 @@ class TestApostaRequest:
                 quantidade_apostas=-1,
                 dezenas_por_aposta=6,
             )
-
 
 
 class TestApostaResponse:

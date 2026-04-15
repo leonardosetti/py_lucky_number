@@ -1,13 +1,11 @@
 """Testes para configurações dos jogos."""
 
-import pytest
-
 from lucky_number.config import (
+    CAIXA_API_BASE,
     JOGOS,
+    MINIMO_INEGOCIAVEL,
     Jogo,
     JogoConfig,
-    MINIMO_INEGOCIAVEL,
-    CAIXA_API_BASE,
 )
 
 
@@ -45,14 +43,16 @@ class TestJogoConfig:
         for jogo, config in JOGOS.items():
             if jogo != Jogo.FEDERAL:
                 assert config.min_dezenas >= MINIMO_INEGOCIAVEL, (
-                    f"{jogo.value}: min_dezenas {config.min_dezenas} < {MINIMO_INEGOCIAVEL}"
+                    f"{jogo.value}: min_dezenas {config.min_dezenas} < "
+                    f"{MINIMO_INEGOCIAVEL}"
                 )
 
     def test_max_dezenas_nao_excede_total(self):
         """Max dezenas não pode exceder total de dezenas."""
         for jogo, config in JOGOS.items():
             assert config.max_dezenas <= config.total_dezenas, (
-                f"{jogo.value}: max_dezenas {config.max_dezenas} > total {config.total_dezenas}"
+                f"{jogo.value}: max_dezenas {config.max_dezenas} > "
+                f"total {config.total_dezenas}"
             )
 
     def test_api_endpoints_validos(self):

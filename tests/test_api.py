@@ -1,12 +1,11 @@
 """Testes para rotas da API."""
 
-import pytest
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 
-from lucky_number.config import Jogo
 from lucky_number.models import ApostaResponse
 from lucky_number.services.gerador import EspacoAmostralEsgotadoError
 
@@ -15,6 +14,7 @@ from lucky_number.services.gerador import EspacoAmostralEsgotadoError
 def client():
     """Cliente de teste."""
     from lucky_number.main import app
+
     return TestClient(app)
 
 
@@ -40,7 +40,7 @@ class TestJogosDisponiveisEndpoint:
         data = response.json()
         assert "jogos" in data
         assert len(data["jogos"]) == 6
-        
+
         jogos = {j["jogo"] for j in data["jogos"]}
         assert "megasena" in jogos
         assert "lotofacil" in jogos
@@ -50,7 +50,7 @@ class TestJogosDisponiveisEndpoint:
         """Cada jogo deve ter todos os campos."""
         response = client.get("/api/v1/jogos-disponiveis")
         data = response.json()
-        
+
         for jogo in data["jogos"]:
             assert "jogo" in jogo
             assert "nome" in jogo
@@ -102,15 +102,17 @@ class TestGerarApostasEndpoint:
     def test_post_gerar_apostas_sucesso(self, mock_get_gerador, client):
         """Deve retornar 200 com dados válidos."""
         mock_gerador = MagicMock()
-        mock_gerador.gerar_de_request = AsyncMock(return_value=ApostaResponse(
-            jogo="megasena",
-            nome_jogo="Mega-Sena",
-            dezenas_por_aposta=6,
-            apostas=[[1, 2, 3, 4, 5, 6]],
-            timestamp=datetime.now(),
-        ))
+        mock_gerador.gerar_de_request = AsyncMock(
+            return_value=ApostaResponse(
+                jogo="megasena",
+                nome_jogo="Mega-Sena",
+                dezenas_por_aposta=6,
+                apostas=[[1, 2, 3, 4, 5, 6]],
+                timestamp=datetime.now(),
+            )
+        )
         mock_get_gerador.return_value = mock_gerador
-        
+
         response = client.post(
             "/api/v1/gerar-apostas",
             json={
@@ -132,7 +134,7 @@ class TestGerarApostasEndpoint:
             side_effect=EspacoAmostralEsgotadoError("Erro")
         )
         mock_get_gerador.return_value = mock_gerador
-        
+
         response = client.post(
             "/api/v1/gerar-apostas",
             json={

@@ -18,7 +18,10 @@ STATIC_DIR = BASE_DIR / "static"
 
 app = FastAPI(
     title="Lucky Number",
-    description="Gera combinações de números aleatórios para loterias da Caixa que nunca foram sorteadas",
+    description=(
+        "Gera combinações de números aleatórios para loterias da Caixa "
+        "que nunca foram sorteadas"
+    ),
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -36,6 +39,7 @@ async def index():
     index_path = STATIC_DIR / "index.html"
     if index_path.exists():
         from fastapi.responses import FileResponse
+
         return FileResponse(str(index_path))
     return {
         "message": "Lucky Number API",
@@ -47,6 +51,7 @@ async def index():
 def main():
     """Executa o servidor de desenvolvimento."""
     import uvicorn
+
     uvicorn.run(
         "lucky_number.main:app",
         host="0.0.0.0",

@@ -1,10 +1,10 @@
 """Contratos Pydantic para a API de Lucky Number."""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field, model_validator
 
-from lucky_number.config import JOGOS, Jogo, MINIMO_INEGOCIAVEL
+from lucky_number.config import JOGOS, MINIMO_INEGOCIAVEL, Jogo
 
 
 class ApostaRequest(BaseModel):
@@ -17,9 +17,7 @@ class ApostaRequest(BaseModel):
         config = JOGOS[self.jogo]
 
         if self.dezenas_por_aposta < MINIMO_INEGOCIAVEL:
-            raise ValueError(
-                f"Mínimo de {MINIMO_INEGOCIAVEL} dezenas é inegociável"
-            )
+            raise ValueError(f"Mínimo de {MINIMO_INEGOCIAVEL} dezenas é inegociável")
 
         if self.dezenas_por_aposta > config.max_dezenas:
             raise ValueError(
@@ -28,7 +26,8 @@ class ApostaRequest(BaseModel):
 
         if self.dezenas_por_aposta > config.total_dezenas:
             raise ValueError(
-                f"Não é possível apostar mais dezenas que o total disponível ({config.total_dezenas})"
+                f"Não é possível apostar mais dezenas que o total "
+                f"disponível ({config.total_dezenas})"
             )
 
         return self

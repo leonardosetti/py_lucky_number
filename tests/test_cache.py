@@ -27,7 +27,7 @@ class TestCache:
         cache = Cache()
         combinacoes = {(1, 2, 3, 4, 5, 6), (7, 8, 9, 10, 11, 12)}
         cache.set(Jogo.MEGA_SENA, combinacoes)
-        
+
         result = cache.get(Jogo.MEGA_SENA)
         assert result == combinacoes
         assert len(result) == 2
@@ -36,7 +36,7 @@ class TestCache:
         """is_cached deve retornar corretamente."""
         cache = Cache()
         assert not cache.is_cached(Jogo.MEGA_SENA)
-        
+
         cache.set(Jogo.MEGA_SENA, {(1, 2, 3, 4, 5, 6)})
         assert cache.is_cached(Jogo.MEGA_SENA)
         assert not cache.is_cached(Jogo.LOTOFACIL)
@@ -46,9 +46,9 @@ class TestCache:
         cache = Cache()
         cache.set(Jogo.MEGA_SENA, {(1, 2, 3, 4, 5, 6)})
         cache.set(Jogo.QUINA, {(1, 2, 3, 4, 5, 6)})
-        
+
         cache.invalidate(Jogo.MEGA_SENA)
-        
+
         assert not cache.is_cached(Jogo.MEGA_SENA)
         assert cache.is_cached(Jogo.QUINA)
 
@@ -57,9 +57,9 @@ class TestCache:
         cache = Cache()
         cache.set(Jogo.MEGA_SENA, {(1, 2, 3, 4, 5, 6)})
         cache.set(Jogo.QUINA, {(1, 2, 3, 4, 5, 6)})
-        
+
         cache.invalidate()
-        
+
         assert not cache.is_cached(Jogo.MEGA_SENA)
         assert not cache.is_cached(Jogo.QUINA)
 
@@ -74,7 +74,7 @@ class TestCache:
         """size deve retornar quantidade correta."""
         cache = Cache()
         assert cache.size() == 0
-        
+
         cache.set(Jogo.MEGA_SENA, {(1, 2, 3, 4, 5, 6), (7, 8, 9, 10, 11, 12)})
         assert cache.size(Jogo.MEGA_SENA) == 2
         assert cache.size(Jogo.QUINA) == 0
@@ -83,13 +83,13 @@ class TestCache:
     def test_dados_separados_por_jogo(self):
         """Cada jogo deve ter dados independentes."""
         cache = Cache()
-        
+
         megasena = {(1, 2, 3, 4, 5, 6)}
         quina = {(10, 20, 30, 40, 50, 60)}
-        
+
         cache.set(Jogo.MEGA_SENA, megasena)
         cache.set(Jogo.QUINA, quina)
-        
+
         assert cache.get(Jogo.MEGA_SENA) == megasena
         assert cache.get(Jogo.QUINA) == quina
         assert len(cache.get(Jogo.MEGA_SENA)) == 1

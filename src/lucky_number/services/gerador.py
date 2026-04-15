@@ -5,7 +5,7 @@ import math
 import random
 from typing import Optional
 
-from lucky_number.config import JOGOS, Jogo, MINIMO_INEGOCIAVEL
+from lucky_number.config import JOGOS, MINIMO_INEGOCIAVEL, Jogo
 from lucky_number.models import ApostaRequest, ApostaResponse
 from lucky_number.services.cache import Cache
 from lucky_number.services.caixa_api import CaixaAPIClient
@@ -45,9 +45,7 @@ class GeradorDeApostas:
         config = JOGOS[jogo]
 
         if dezenas_por_aposta < MINIMO_INEGOCIAVEL:
-            raise ValueError(
-                f"Mínimo de {MINIMO_INEGOCIAVEL} dezenas é inegociável"
-            )
+            raise ValueError(f"Mínimo de {MINIMO_INEGOCIAVEL} dezenas é inegociável")
 
         historico = await self._garantir_historico(jogo)
 

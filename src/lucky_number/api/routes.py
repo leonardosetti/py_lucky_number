@@ -1,9 +1,10 @@
 """Rotas da API."""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from lucky_number.api.dependencies import get_gerador
 from lucky_number.config import JOGOS
 from lucky_number.models import (
     ApostaRequest,
@@ -13,7 +14,6 @@ from lucky_number.models import (
     JogosDisponiveisResponse,
 )
 from lucky_number.services.gerador import EspacoAmostralEsgotadoError, GeradorDeApostas
-from lucky_number.api.dependencies import get_gerador
 
 router = APIRouter()
 
