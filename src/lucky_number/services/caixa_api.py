@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 import httpx
 
@@ -82,13 +82,14 @@ class CaixaAPIClient:
         logger.info(f"Encontradas {len(combinacoes)} combinações para {config.nome}")
         return combinacoes
 
-    async def _buscar_ultimo_concurso(self, endpoint: str) -> Optional[dict]:
+    async def _buscar_ultimo_concurso(self, endpoint: str) -> Optional[dict[str, Any]]:
         """Busca o concurso mais recente."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(endpoint)
                 if response.status_code == 200:
-                    return response.json()
+                    data: dict[str, Any] = response.json()
+                    return data
                 return None
         except httpx.TimeoutException:
             raise TimeoutError(f"Timeout ao buscar {endpoint}")
@@ -121,6 +122,9 @@ class CaixaAPIClient:
                     await asyncio.sleep(self.backoff_base * (2**tentativa))
                     continue
                 raise TimeoutError(f"Timeout após {self.max_retries} tentativas")
+
+        # Fallback return - should not reach here normally
+        return []
 
     def _parse_dezenas(self, data: dict, jogo: Jogo) -> list[int]:
         """Extrai e normaliza as dezenas do JSON da Caixa."""
