@@ -160,7 +160,8 @@ class TestEspacoAmostral:
 
         gerador = GeradorDeApostas(cache=mock_cache, caixa_api=mock_api)
 
-        # Mock _calcular_combinacoes to return small number (10 total, 9 used, 1 available)
+        # Mock _calcular_combinacoes to return small number
+        # (10 total, 9 used, 1 available)
         gerador._calcular_combinacoes = lambda n, k: 10
 
         # Request 2 bets when only 1 is available
