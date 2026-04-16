@@ -143,18 +143,31 @@ class TestEspacoAmostral:
     @pytest.mark.asyncio
     async def test_espaco_amostral_esgotado(self, mock_cache, mock_api):
         """Deve lançar erro quando espaço amostral esgotado."""
+        # Mock scenario: small sample space (10 combinations)
+        # with 9 already drawn, leaving only 1 available
         historico_grande = {
-            tuple(range(1, 7)),
-            tuple(range(7, 13)),
+            (1, 2, 3, 4, 5, 6),
+            (1, 2, 3, 4, 5, 7),
+            (1, 2, 3, 4, 5, 8),
+            (1, 2, 3, 4, 5, 9),
+            (1, 2, 3, 4, 5, 10),
+            (1, 2, 3, 4, 6, 7),
+            (1, 2, 3, 4, 6, 8),
+            (1, 2, 3, 4, 6, 9),
+            (1, 2, 3, 4, 6, 10),
         }
         mock_cache.get.return_value = historico_grande
 
         gerador = GeradorDeApostas(cache=mock_cache, caixa_api=mock_api)
 
+        # Mock _calcular_combinacoes to return small number (10 total, 9 used, 1 available)
+        gerador._calcular_combinacoes = lambda n, k: 10
+
+        # Request 2 bets when only 1 is available
         with pytest.raises(EspacoAmostralEsgotadoError):
             await gerador.gerar(
                 jogo=Jogo.MEGA_SENA,
-                quantidade_apostas=50000000,
+                quantidade_apostas=2,
                 dezenas_por_aposta=6,
             )
 

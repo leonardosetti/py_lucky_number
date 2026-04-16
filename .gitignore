@@ -206,6 +206,7 @@ config/secrets.yml
 .env.local
 .env.*.local
 
+<<<<<<< HEAD
 # Project specifications and coordination documents (private)
 *_PLAN.md
 *_STRATEGY.md
@@ -218,3 +219,9 @@ SPEC*
 coordination/
 plans/
 specs/
+=======
+# AI tools
+.opencode
+.specify
+
+>>>>>>> 2ebe621285cd10bacd4eaf49c9dfbec70ee8683d
