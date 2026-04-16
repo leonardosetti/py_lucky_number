@@ -205,3 +205,8 @@ credentials.json
 config/secrets.yml
 .env.local
 .env.*.local
+
+# AI tools
+.opencode
+.specify
+
