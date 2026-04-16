@@ -26,3 +26,22 @@ htmlcov/
 .mypy_cache
 .dmypy.json
 *.log
+
+# Project coordination and specification files
+*_PLAN.md
+*_STRATEGY.md
+ARCHITECTURE.md
+DEPLOYMENT_LOG.md
+TODO*
+ROADMAP*
+NOTES*
+SPEC*
+coordination/
+plans/
+specs/
+
+# GitHub specific (not needed in container)
+.github/
+
+# Documentation (optional)
+docs/
