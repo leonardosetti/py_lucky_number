@@ -1,6 +1,6 @@
 """Testes para cliente da API da Caixa."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
@@ -137,16 +137,31 @@ class TestCaixaAPIClient:
         assert dezenas == [1, 2, 3, 4, 5, 6]
 
     @pytest.mark.asyncio
-    async def test_buscar_ultimo_concurso_sucesso(self, client, mock_response_200):
-        """Deve buscar último concurso com sucesso."""
-        with patch("lucky_number.services.caixa_api.httpx.AsyncClient") as MockClient:
-            instance = AsyncMock()
-            instance.__aenter__.return_value.get = AsyncMock(
-                return_value=mock_response_200
-            )
-            MockClient.return_value = instance
+    async def _mock_get_client(self, client, mock_get):
+        """Patcheia _get_client para retornar o mock HTTP."""
+        client._client = None  # ensure _get_client creates new
+        original_get_client = client._get_client
 
-            result = await client._buscar_ultimo_concurso("https://example.com")
+        async def patched_get_client():
+            return mock_get
+
+        client._get_client = patched_get_client
+
+    def _make_mock_http(self, return_value=None, side_effect=None):
+        """Cria mock de httpx.AsyncClient com get configurado."""
+        mock_http = AsyncMock()
+        mock_http.get = AsyncMock(return_value=return_value, side_effect=side_effect)
+        return mock_http
+
+    @pytest.mark.asyncio
+    async def test_buscar_ultimo_concurso_sucesso(
+        self, client, mock_response_200
+    ):
+        """Deve buscar último concurso com sucesso."""
+        mock_http = self._make_mock_http(return_value=mock_response_200)
+        await self._mock_get_client(client, mock_http)
+
+        result = await client._buscar_ultimo_concurso("https://example.com")
 
         assert result is not None
         assert result["numero"] == 1234
@@ -154,102 +169,83 @@ class TestCaixaAPIClient:
     @pytest.mark.asyncio
     async def test_buscar_ultimo_concurso_timeout(self, client):
         """Deve lançar TimeoutError em timeout."""
-        with patch("lucky_number.services.caixa_api.httpx.AsyncClient") as MockClient:
-            instance = AsyncMock()
-            instance.__aenter__.side_effect = httpx.TimeoutException("Timeout")
-            MockClient.return_value = instance
+        mock_http = self._make_mock_http(side_effect=httpx.TimeoutException("Timeout"))
+        await self._mock_get_client(client, mock_http)
 
-            with pytest.raises(TimeoutError):
-                await client._buscar_ultimo_concurso("https://example.com")
+        with pytest.raises(TimeoutError):
+            await client._buscar_ultimo_concurso("https://example.com")
 
     @pytest.mark.asyncio
     async def test_buscar_ultimo_concurso_erro_generico(self, client):
         """Deve retornar None em erro genérico."""
-        with patch("lucky_number.services.caixa_api.httpx.AsyncClient") as MockClient:
-            instance = AsyncMock()
-            instance.__aenter__.side_effect = Exception("Erro generico")
-            MockClient.return_value = instance
+        mock_http = self._make_mock_http(side_effect=Exception("Erro generico"))
+        await self._mock_get_client(client, mock_http)
 
-            result = await client._buscar_ultimo_concurso("https://example.com")
-            assert result is None
+        result = await client._buscar_ultimo_concurso("https://example.com")
+        assert result is None
 
     @pytest.mark.asyncio
     async def test_buscar_ultimo_concurso_status_nao_200(
         self, client, mock_response_404
     ):
         """Deve retornar None quando status não é 200."""
-        with patch("lucky_number.services.caixa_api.httpx.AsyncClient") as MockClient:
-            instance = AsyncMock()
-            instance.__aenter__.return_value.get = AsyncMock(
-                return_value=mock_response_404
-            )
-            MockClient.return_value = instance
+        mock_http = self._make_mock_http(return_value=mock_response_404)
+        await self._mock_get_client(client, mock_http)
 
-            result = await client._buscar_ultimo_concurso("https://example.com")
-            assert result is None
+        result = await client._buscar_ultimo_concurso("https://example.com")
+        assert result is None
 
     @pytest.mark.asyncio
-    async def test_buscar_dezenas_sucesso(self, client, mock_response_200):
+    async def test_buscar_dezenas_sucesso(
+        self, client, mock_response_200
+    ):
         """Deve buscar dezenas com sucesso."""
-        with patch("lucky_number.services.caixa_api.httpx.AsyncClient") as MockClient:
-            instance = AsyncMock()
-            instance.__aenter__.return_value.get = AsyncMock(
-                return_value=mock_response_200
-            )
-            MockClient.return_value = instance
+        mock_http = self._make_mock_http(return_value=mock_response_200)
+        await self._mock_get_client(client, mock_http)
 
-            result = await client._buscar_dezenas(
-                "https://example.com", 1234, Jogo.MEGA_SENA
-            )
-            assert result == [1, 2, 3, 4, 5, 6]
+        result = await client._buscar_dezenas(
+            "https://example.com", 1234, Jogo.MEGA_SENA
+        )
+        assert result == [1, 2, 3, 4, 5, 6]
 
     @pytest.mark.asyncio
     async def test_buscar_dezenas_not_found(self, client, mock_response_404):
         """Deve lançar NotFoundError em 404."""
-        with patch("lucky_number.services.caixa_api.httpx.AsyncClient") as MockClient:
-            instance = AsyncMock()
-            instance.__aenter__.return_value.get = AsyncMock(
-                return_value=mock_response_404
-            )
-            MockClient.return_value = instance
+        mock_http = self._make_mock_http(return_value=mock_response_404)
+        await self._mock_get_client(client, mock_http)
 
-            with pytest.raises(NotFoundError):
-                await client._buscar_dezenas(
-                    "https://example.com", 1234, Jogo.MEGA_SENA
-                )
+        with pytest.raises(NotFoundError):
+            await client._buscar_dezenas(
+                "https://example.com", 1234, Jogo.MEGA_SENA
+            )
 
     @pytest.mark.asyncio
     async def test_buscar_dezenas_http_error(self, client, mock_response_500):
         """Deve lançar CaixaAPIError em erro HTTP."""
-        with patch("lucky_number.services.caixa_api.httpx.AsyncClient") as MockClient:
-            instance = AsyncMock()
-            instance.__aenter__.return_value.get = AsyncMock(
-                return_value=mock_response_500
-            )
-            MockClient.return_value = instance
+        mock_http = self._make_mock_http(return_value=mock_response_500)
+        await self._mock_get_client(client, mock_http)
 
-            with pytest.raises(CaixaAPIError):
-                await client._buscar_dezenas(
-                    "https://example.com", 1234, Jogo.MEGA_SENA
-                )
+        with pytest.raises(CaixaAPIError):
+            await client._buscar_dezenas(
+                "https://example.com", 1234, Jogo.MEGA_SENA
+            )
 
     @pytest.mark.asyncio
     async def test_buscar_dezenas_timeout_com_retry(self, client):
         """Deve retry em timeout e eventualmente lançar TimeoutError."""
-        with patch("lucky_number.services.caixa_api.httpx.AsyncClient") as MockClient:
-            instance = AsyncMock()
-            instance.__aenter__.side_effect = httpx.TimeoutException("Timeout")
-            MockClient.return_value = instance
+        mock_http = self._make_mock_http(side_effect=httpx.TimeoutException("Timeout"))
+        await self._mock_get_client(client, mock_http)
 
-            with pytest.raises(TimeoutError):
-                await client._buscar_dezenas(
-                    "https://example.com", 1234, Jogo.MEGA_SENA
-                )
+        with pytest.raises(TimeoutError):
+            await client._buscar_dezenas(
+                "https://example.com", 1234, Jogo.MEGA_SENA
+            )
 
     @pytest.mark.asyncio
     async def test_buscar_todos_resultados_vazio(self, client):
         """Deve retornar set vazio quando não encontra concursos."""
-        with patch.object(client, "_buscar_ultimo_concurso", return_value=None):
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setattr(client, "_buscar_ultimo_concurso", AsyncMock(return_value=None))
             result = await client.buscar_todos_resultados(Jogo.MEGA_SENA)
             assert result == set()
 
@@ -261,7 +257,6 @@ class TestCaixaAPIClient:
         def side_effect(*args, **kwargs):
             nonlocal call_count
             call_count += 1
-            # Return different combinations for each concurso
             return [
                 call_count,
                 call_count + 1,
@@ -271,58 +266,112 @@ class TestCaixaAPIClient:
                 call_count + 5,
             ]
 
-        with patch.object(
-            client, "_buscar_ultimo_concurso", return_value={"numero": 2}
-        ):
-            with patch.object(client, "_buscar_dezenas", side_effect=side_effect):
-                result = await client.buscar_todos_resultados(Jogo.MEGA_SENA)
-                assert len(result) == 2
-                assert (1, 2, 3, 4, 5, 6) in result
-                assert (2, 3, 4, 5, 6, 7) in result
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setattr(
+                client, "_buscar_ultimo_concurso", AsyncMock(return_value={"numero": 2})
+            )
+            mp.setattr(client, "_buscar_dezenas", AsyncMock(side_effect=side_effect))
+            result = await client.buscar_todos_resultados(Jogo.MEGA_SENA)
+            assert len(result) == 2
+            assert (1, 2, 3, 4, 5, 6) in result
+            assert (2, 3, 4, 5, 6, 7) in result
 
     @pytest.mark.asyncio
     async def test_buscar_todos_resultados_not_found_ignored(self, client):
         """Deve ignorar NotFoundError e continuar."""
-        with patch.object(
-            client, "_buscar_ultimo_concurso", return_value={"numero": 3}
-        ):
-            with patch.object(client, "_buscar_dezenas") as mock_buscar:
-                mock_buscar.side_effect = [
-                    [1, 2, 3, 4, 5, 6],
-                    NotFoundError("Not found"),
-                    [7, 8, 9, 10, 11, 12],
-                ]
-                # Simular comportamento: NotFoundError é capturado
-                result = await client.buscar_todos_resultados(Jogo.MEGA_SENA)
-                # Apenas 2 combinações válidas
-                assert len(result) == 2
+        mock_buscar = AsyncMock()
+        mock_buscar.side_effect = [
+            [1, 2, 3, 4, 5, 6],
+            NotFoundError("Not found"),
+            [7, 8, 9, 10, 11, 12],
+        ]
+
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setattr(
+                client, "_buscar_ultimo_concurso", AsyncMock(return_value={"numero": 3})
+            )
+            mp.setattr(client, "_buscar_dezenas", mock_buscar)
+            result = await client.buscar_todos_resultados(Jogo.MEGA_SENA)
+            assert len(result) == 2
 
     @pytest.mark.asyncio
     async def test_buscar_todos_resultados_timeout_ignored(self, client):
         """Deve ignorar TimeoutError e continuar."""
-        with patch.object(
-            client, "_buscar_ultimo_concurso", return_value={"numero": 2}
-        ):
-            with patch.object(client, "_buscar_dezenas") as mock_buscar:
-                mock_buscar.side_effect = [
-                    [1, 2, 3, 4, 5, 6],
-                    TimeoutError("Timeout"),
-                ]
-                result = await client.buscar_todos_resultados(Jogo.MEGA_SENA)
-                assert len(result) == 1
+        mock_buscar = AsyncMock()
+        mock_buscar.side_effect = [
+            [1, 2, 3, 4, 5, 6],
+            TimeoutError("Timeout"),
+        ]
+
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setattr(
+                client, "_buscar_ultimo_concurso", AsyncMock(return_value={"numero": 2})
+            )
+            mp.setattr(client, "_buscar_dezenas", mock_buscar)
+            result = await client.buscar_todos_resultados(Jogo.MEGA_SENA)
+            assert len(result) == 1
 
     @pytest.mark.asyncio
     async def test_buscar_todos_resultados_para_em_max_erros(self, client):
         """Deve parar após max_errors erros consecutivos."""
-        with patch.object(
-            client, "_buscar_ultimo_concurso", return_value={"numero": 100}
-        ):
-            with patch.object(
-                client, "_buscar_dezenas", side_effect=NotFoundError("Not found")
-            ):
-                result = await client.buscar_todos_resultados(Jogo.MEGA_SENA)
-                # Deve parar após 50 erros consecutivos
-                assert len(result) == 0
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setattr(
+                client, "_buscar_ultimo_concurso", AsyncMock(return_value={"numero": 100})
+            )
+            mp.setattr(
+                client,
+                "_buscar_dezenas",
+                AsyncMock(side_effect=NotFoundError("Not found")),
+            )
+            result = await client.buscar_todos_resultados(Jogo.MEGA_SENA)
+            assert len(result) == 0
+
+    @pytest.mark.asyncio
+    async def test_get_client_cria_quando_necessario(self, client):
+        """_get_client deve criar cliente quando não existe."""
+        client._client = None
+        http_client = await client._get_client()
+        assert http_client is not None
+        assert not http_client.is_closed
+        await http_client.aclose()
+
+    @pytest.mark.asyncio
+    async def test_get_client_reusa_existente(self, client):
+        """_get_client deve reutilizar cliente existente."""
+        mock_http = AsyncMock()
+        mock_http.is_closed = False
+        client._client = mock_http
+
+        result = await client._get_client()
+        assert result is mock_http
+
+    @pytest.mark.asyncio
+    async def test_get_client_recria_quando_fechado(self, client):
+        """_get_client deve recriar cliente quando anterior foi fechado."""
+        mock_http = AsyncMock()
+        mock_http.is_closed = True
+        client._client = mock_http
+
+        result = await client._get_client()
+        assert result is not mock_http
+        assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_close_fecha_cliente(self, client):
+        """close deve fechar o cliente HTTP."""
+        mock_http = AsyncMock()
+        mock_http.is_closed = False
+        client._client = mock_http
+
+        await client.close()
+        mock_http.aclose.assert_awaited_once()
+        assert client._client is None
+
+    @pytest.mark.asyncio
+    async def test_close_ignorado_quando_sem_cliente(self, client):
+        """close não deve falhar quando não há cliente."""
+        client._client = None
+        await client.close()  # Não deve lançar exceção
 
 
 class TestCaixaAPIExceptions:

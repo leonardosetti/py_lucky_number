@@ -128,6 +128,46 @@ class TestGeradorDeApostas:
         assert result.dezenas_por_aposta == 6
         assert result.timestamp is not None
 
+    @pytest.mark.asyncio
+    async def test_response_valor_total_6_dezenas(self, gerador):
+        """1 aposta de 6 números da Mega-Sena = R$ 6,00."""
+        result = await gerador.gerar(
+            jogo=Jogo.MEGA_SENA,
+            quantidade_apostas=1,
+            dezenas_por_aposta=6,
+        )
+        assert result.valor_total == 6.00
+
+    @pytest.mark.asyncio
+    async def test_response_valor_total_multiplas(self, gerador):
+        """3 apostas de 6 números da Mega-Sena = R$ 18,00."""
+        result = await gerador.gerar(
+            jogo=Jogo.MEGA_SENA,
+            quantidade_apostas=3,
+            dezenas_por_aposta=6,
+        )
+        assert result.valor_total == 18.00
+
+    @pytest.mark.asyncio
+    async def test_response_valor_total_lotofacil(self, gerador):
+        """1 aposta de 15 números da Lotofácil = R$ 3,50."""
+        result = await gerador.gerar(
+            jogo=Jogo.LOTOFACIL,
+            quantidade_apostas=1,
+            dezenas_por_aposta=15,
+        )
+        assert result.valor_total == 3.50
+
+    @pytest.mark.asyncio
+    async def test_response_valor_total_7_dezenas_megasena(self, gerador):
+        """1 aposta de 7 números da Mega-Sena = R$ 42,00."""
+        result = await gerador.gerar(
+            jogo=Jogo.MEGA_SENA,
+            quantidade_apostas=1,
+            dezenas_por_aposta=7,
+        )
+        assert result.valor_total == 42.00
+
 
 class TestEspacoAmostral:
     """Testes para espaço amostral."""

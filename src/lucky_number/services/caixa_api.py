@@ -35,6 +35,19 @@ class CaixaAPIClient:
         self.timeout = timeout
         self.max_retries = max_retries
         self.backoff_base = backoff_base
+        self._client: Optional[httpx.AsyncClient] = None
+
+    async def _get_client(self) -> httpx.AsyncClient:
+        """Retorna o cliente HTTP compartilhado (cria sob demanda)."""
+        if self._client is None or self._client.is_closed:
+            self._client = httpx.AsyncClient(timeout=self.timeout)
+        return self._client
+
+    async def close(self) -> None:
+        """Fecha o cliente HTTP."""
+        if self._client and not self._client.is_closed:
+            await self._client.aclose()
+            self._client = None
 
     async def buscar_todos_resultados(self, jogo: Jogo) -> set[tuple[int, ...]]:
         """Busca TODOS os concursos históricos de um jogo.
@@ -85,12 +98,12 @@ class CaixaAPIClient:
     async def _buscar_ultimo_concurso(self, endpoint: str) -> Optional[dict[str, Any]]:
         """Busca o concurso mais recente."""
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(endpoint)
-                if response.status_code == 200:
-                    data: dict[str, Any] = response.json()
-                    return data
-                return None
+            client = await self._get_client()
+            response = await client.get(endpoint)
+            if response.status_code == 200:
+                data: dict[str, Any] = response.json()
+                return data
+            return None
         except httpx.TimeoutException:
             raise TimeoutError(f"Timeout ao buscar {endpoint}")
         except Exception as e:
@@ -105,17 +118,17 @@ class CaixaAPIClient:
 
         for tentativa in range(self.max_retries):
             try:
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    response = await client.get(url)
+                client = await self._get_client()
+                response = await client.get(url)
 
-                    if response.status_code == 404:
-                        raise NotFoundError(f"Concurso {concurso} não encontrado")
+                if response.status_code == 404:
+                    raise NotFoundError(f"Concurso {concurso} não encontrado")
 
-                    if response.status_code != 200:
-                        raise CaixaAPIError(f"HTTP {response.status_code} para {url}")
+                if response.status_code != 200:
+                    raise CaixaAPIError(f"HTTP {response.status_code} para {url}")
 
-                    data = response.json()
-                    return self._parse_dezenas(data, jogo)
+                data = response.json()
+                return self._parse_dezenas(data, jogo)
 
             except httpx.TimeoutException:
                 if tentativa < self.max_retries - 1:
@@ -123,7 +136,6 @@ class CaixaAPIClient:
                     continue
                 raise TimeoutError(f"Timeout após {self.max_retries} tentativas")
 
-        # Fallback return - should not reach here normally
         return []
 
     def _parse_dezenas(self, data: dict, jogo: Jogo) -> list[int]:

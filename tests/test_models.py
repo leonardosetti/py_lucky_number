@@ -32,12 +32,12 @@ class TestApostaRequest:
         assert "inegociável" in str(exc_info.value).lower()
 
     def test_aposta_request_dezenas_acima_maximo_megasena(self):
-        """Dezenas acima do máximo para Mega-Sena (15) deve falhar."""
+        """Dezenas acima do máximo para Mega-Sena (20) deve falhar."""
         with pytest.raises(ValidationError) as exc_info:
             ApostaRequest(
                 jogo=Jogo.MEGA_SENA,
                 quantidade_apostas=1,
-                dezenas_por_aposta=20,
+                dezenas_por_aposta=21,
             )
         assert "máximo" in str(exc_info.value).lower()
 
@@ -80,6 +80,7 @@ class TestApostaResponse:
             nome_jogo="Mega-Sena",
             dezenas_por_aposta=6,
             apostas=[[1, 2, 3, 4, 5, 6], [7, 8, 9, 10, 11, 12]],
+            valor_total=12.0,
         )
         data = response.model_dump()
         assert data["jogo"] == "megasena"
@@ -93,6 +94,7 @@ class TestApostaResponse:
             nome_jogo="Mega-Sena",
             dezenas_por_aposta=6,
             apostas=[[1, 2, 3, 4, 5, 6]],
+            valor_total=6.0,
         )
         assert response.timestamp is not None
 

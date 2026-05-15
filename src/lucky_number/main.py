@@ -1,11 +1,13 @@
 """App FastAPI principal."""
 
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from lucky_number.api.dependencies import get_caixa_api
 from lucky_number.api.routes import router
 
 logging.basicConfig(
@@ -16,6 +18,15 @@ logging.basicConfig(
 BASE_DIR = Path(__file__).parent.parent.parent
 STATIC_DIR = BASE_DIR / "static"
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Gerencia ciclo de vida da aplicação."""
+    yield
+    client = get_caixa_api()
+    await client.close()
+
+
 app = FastAPI(
     title="Lucky Number",
     description=(
@@ -25,6 +36,7 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 app.include_router(router, prefix="/api/v1")

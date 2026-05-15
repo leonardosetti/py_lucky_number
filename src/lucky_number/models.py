@@ -9,7 +9,7 @@ from lucky_number.config import JOGOS, MINIMO_INEGOCIAVEL, Jogo
 
 class ApostaRequest(BaseModel):
     jogo: Jogo
-    quantidade_apostas: int = Field(ge=1, le=100)
+    quantidade_apostas: int = Field(ge=1, le=10)
     dezenas_por_aposta: int = Field(ge=1)
 
     @model_validator(mode="after")
@@ -38,6 +38,7 @@ class ApostaResponse(BaseModel):
     nome_jogo: str
     dezenas_por_aposta: int
     apostas: list[list[int]]
+    valor_total: float
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 

@@ -86,11 +86,13 @@ class GeradorDeApostas:
                 f"após {max_tentativas} tentativas"
             )
 
+        valor_unitario = config.calcular_preco(dezenas_por_aposta)
         return ApostaResponse(
             jogo=jogo.value,
             nome_jogo=config.nome,
             dezenas_por_aposta=dezenas_por_aposta,
             apostas=combinacoes,
+            valor_total=round(valor_unitario * quantidade_apostas, 2),
         )
 
     async def gerar_de_request(self, request: ApostaRequest) -> ApostaResponse:

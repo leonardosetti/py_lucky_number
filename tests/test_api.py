@@ -118,6 +118,7 @@ class TestGerarApostasEndpoint:
                 nome_jogo="Mega-Sena",
                 dezenas_por_aposta=6,
                 apostas=[[1, 2, 3, 4, 5, 6]],
+                valor_total=6.0,
                 timestamp=datetime.now(),
             )
         )
