@@ -170,6 +170,28 @@ em spec alguma. Assumption em spec 003 diz "região inferida do IP".
 
 ---
 
+## 5. Tarefas que Requerem Nova API no Backend
+
+### 🟡 T157 — Página de Perfil (Profile)
+
+**Problema**: A página de perfil (alterar senha, excluir conta - LGPD) requer
+endpoints de API que não existem no backend:
+- `PUT /api/v1/auth/password` — alterar senha (bcrypt)
+- `DELETE /api/v1/auth/account` — excluir conta (soft delete + anonimização LGPD)
+
+**Ação necessária**:
+1. Criar `PUT /api/v1/auth/password` em `src/lucky_number/api/routes.py`
+   - Receber: `current_password`, `new_password`
+   - Validar senha atual, atualizar hash
+2. Criar `DELETE /api/v1/auth/account` em `src/lucky_number/api/routes.py`
+   - Soft delete (ativo=false, deleted_at=now)
+   - Anonimizar dados pessoais (nome → "Usuário removido", email → hash)
+3. Criar página Perfil em `web/src/app/profile/page.tsx`
+   - Formulário de alteração de senha
+   - Botão "Excluir Conta" com confirmação em 2 passos
+
+---
+
 ## Resumo
 
 | Tipo | Quantidade |
@@ -177,7 +199,7 @@ em spec alguma. Assumption em spec 003 diz "região inferida do IP".
 | 🔴 Specs faltantes (CRITICAL) | 3 |
 | 🔴 Inconsistências em specs existentes | 2 |
 | 🟠 Inconsistências Constitution vs Specs | 1 |
-| 🟡 Melhorias em specs | 4 |
+| 🟡 Melhorias em specs / APIs faltantes | 5 |
 | 🟢 Ajustes no Plan | 1 |
 
-**Total de TODOs**: 28 itens (entre abertos e fechados)
+**Total de TODOs**: 29 itens (entre abertos e fechados)
