@@ -7,7 +7,6 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -23,8 +22,7 @@ from lucky_number.api.routes import router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-BASE_DIR = Path(__file__).parent.parent.parent
-STATIC_DIR = BASE_DIR / "static"
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3002")
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
@@ -49,7 +47,7 @@ if os.getenv("ENVIRONMENT") != "test":
 if os.getenv("ENVIRONMENT") != "test":
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000", "http://localhost:5173"],
+        allow_origins=["http://localhost:3002", "http://localhost:5173", FRONTEND_URL],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -68,17 +66,12 @@ async def metrics():
     from fastapi.responses import PlainTextResponse
     return PlainTextResponse(generate_latest().decode("utf-8"), media_type="text/plain")
 
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-
 
 @app.get("/")
 async def index():
-    index_path = STATIC_DIR / "index.html"
-    if index_path.exists():
-        from fastapi.responses import FileResponse
-        return FileResponse(str(index_path))
-    return {"message": "Lucky Number API", "docs": "/docs", "jogos": "/api/v1/jogos-disponiveis"}
+    """Redireciona para o frontend Next.js."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url=FRONTEND_URL)
 
 
 def main():

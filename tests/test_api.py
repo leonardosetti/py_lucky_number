@@ -180,6 +180,6 @@ class TestIndexEndpoint:
     """Testes para endpoint raiz /."""
 
     def test_get_index(self, client):
-        """Deve servir página ou JSON."""
-        response = client.get("/")
-        assert response.status_code == 200
+        """Deve redirecionar para o frontend Next.js."""
+        response = client.get("/", follow_redirects=False)
+        assert response.status_code == 307  # Redirect

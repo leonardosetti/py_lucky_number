@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Number - Gerador de Números da Sorte</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #ffd700, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+        
+        .jogos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .jogo-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .jogo-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .jogo-card.selected {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.15);
+        }
+        
+        .jogo-card input {
+            display: none;
+        }
+        
+        .jogo-nome {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .jogo-info {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .megasena { --cor: #209869; }
+        .lotofacil { --cor: #930089; }
+        .quina { --cor: #260085; }
+        .duplasena { --cor: #a61324; }
+        .federal { --cor: #0e4e8f; }
+        .diadesorte { --cor: #cb8726; }
+        
+        .config-section {
+            display: none;
+            margin-bottom: 24px;
+            padding: 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 12px;
+        }
+        
+        .config-section.active {
+            display: block;
+        }
+        
+        .config-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 1rem;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #ffd700, #ff6b35);
+            color: #1a1a2e;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .results.active {
+            display: block;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .results-title {
+            font-size: 1.3rem;
+            color: #ffd700;
+        }
+        
+        .apostas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        
+        .aposta-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .aposta-numero {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 12px;
+        }
+        
+        .dezenas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .dezena {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            background: var(--cor, #ffd700);
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 215, 0, 0.2);
+            border-top-color: #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            display: none;
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            color: #ff6b6b;
+        }
+        
+        .error.active {
+            display: block;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        footer a {
+            color: #ffd700;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍀 Lucky Number</h1>
+            <p class="subtitle">Gere combinações que nunca foram sorteadas</p>
+        </header>
+        
+        <div class="card">
+            <h2 class="card-title">Selecione o jogo</h2>
+            <div class="jogos-grid" id="jogosGrid"></div>
+            
+            <div class="config-section" id="configSection">
+                <div class="config-row">
+                    <div class="input-group">
+                        <label for="quantidade">Quantas apostas?</label>
+                        <input type="number" id="quantidade" min="1" max="100" value="5">
+                    </div>
+                    <div class="input-group">
+                        <label for="dezenas">Dezenas por aposta</label>
+                        <input type="number" id="dezenas" min="6" max="15" value="6">
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" id="gerarBtn" disabled>
+                Gerar Números da Sorte
+            </button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Buscando histórico e gerando combinações...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="results" id="results">
+            <div class="results-header">
+                <h3 class="results-title">Suas apostas geradas</h3>
+            </div>
+            <div class="apostas-grid" id="apostasGrid"></div>
+        </div>
+        
+        <footer>
+            <p>Dados históricos da <a href="https://loterias.caixa.gov.br/" target="_blank">Caixa Econômica Federal</a></p>
+            <p>API não oficial - uso apenas para fins de estudo</p>
+        </footer>
+    </div>
+    
+    <script>
+        const CORES = {
+            megasena: '#209869',
+            lotofacil: '#930089',
+            quina: '#260085',
+            duplasena: '#a61324',
+            federal: '#0e4e8f',
+            diadesorte: '#cb8726'
+        };
+        
+        let jogosDisponiveis = [];
+        let jogoSelecionado = null;
+        
+        async function carregarJogos() {
+            try {
+                const response = await fetch('/api/v1/jogos-disponiveis');
+                const data = await response.json();
+                jogosDisponiveis = data.jogos;
+                renderizarJogos();
+            } catch (error) {
+                mostrarErro('Erro ao carregar jogos: ' + error.message);
+            }
+        }
+        
+        function renderizarJogos() {
+            const grid = document.getElementById('jogosGrid');
+            grid.innerHTML = jogosDisponiveis.map(jogo => `
+                <label class="jogo-card ${jogo.jogo}" style="--cor: ${CORES[jogo.jogo]}">
+                    <input type="radio" name="jogo" value="${jogo.jogo}" 
+                           data-min="${jogo.min_dezenas}" data-max="${jogo.max_dezenas}"
+                           data-total="${jogo.total_dezenas}">
+                    <div class="jogo-nome">${jogo.nome}</div>
+                    <div class="jogo-info">${jogo.min_dezenas}-${jogo.max_dezenas} números</div>
+                </label>
+            `).join('');
+            
+            document.querySelectorAll('.jogo-card input').forEach(input => {
+                input.addEventListener('change', selecionarJogo);
+            });
+        }
+        
+        function selecionarJogo(e) {
+            document.querySelectorAll('.jogo-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            e.target.closest('.jogo-card').classList.add('selected');
+            
+            jogoSelecionado = jogosDisponiveis.find(j => j.jogo === e.target.value);
+            
+            const dezenasInput = document.getElementById('dezenas');
+            dezenasInput.min = Math.max(6, jogoSelecionado.min_dezenas);
+            dezenasInput.value = Math.max(6, jogoSelecionado.min_dezenas);
+            dezenasInput.max = jogoSelecionado.max_dezenas;
+            
+            document.getElementById('configSection').classList.add('active');
+            document.getElementById('gerarBtn').disabled = false;
+        }
+        
+        async function gerarApostas() {
+            if (!jogoSelecionado) return;
+            
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const dezenas = parseInt(document.getElementById('dezenas').value);
+            
+            if (quantidade < 1 || quantidade > 100) {
+                mostrarErro('Quantidade de apostas deve ser entre 1 e 100');
+                return;
+            }
+            
+            if (dezenas < 6) {
+                mostrarErro('Mínimo de 6 dezenas é inegociável');
+                return;
+            }
+            
+            if (dezenas > jogoSelecionado.max_dezenas) {
+                mostrarErro(`Máximo de ${jogoSelecionado.max_dezenas} dezenas para este jogo`);
+                return;
+            }
+            
+            esconderErro();
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('gerarBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/api/v1/gerar-apostas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jogo: jogoSelecionado.jogo,
+                        quantidade_apostas: quantidade,
+                        dezenas_por_aposta: dezenas
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Erro ao gerar apostas');
+                }
+                
+                const data = await response.json();
+                renderizarResultados(data);
+                
+            } catch (error) {
+                mostrarErro(error.message);
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('gerarBtn').disabled = false;
+            }
+        }
+        
+        function renderizarResultados(data) {
+            const grid = document.getElementById('apostasGrid');
+            const cor = CORES[data.jogo] || '#ffd700';
+            
+            grid.innerHTML = data.apostas.map((aposta, index) => `
+                <div class="aposta-card">
+                    <div class="aposta-numero">Aposta #${index + 1}</div>
+                    <div class="dezenas">
+                        ${aposta.map(d => `<span class="dezena" style="--cor: ${cor}">${String(d).padStart(2, '0')}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('results').classList.add('active');
+        }
+        
+        function mostrarErro(msg) {
+            const el = document.getElementById('error');
+            el.textContent = msg;
+            el.classList.add('active');
+        }
+        
+        function esconderErro() {
+            document.getElementById('error').classList.remove('active');
+        }
+        
+        document.getElementById('gerarBtn').addEventListener('click', gerarApostas);
+        
+        carregarJogos();
+    </script>
+</body>
+</html>
