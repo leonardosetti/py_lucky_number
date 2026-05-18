@@ -1,19 +1,97 @@
-version: "3.8"
+# Lucky Number — Docker Compose (Spec 006)
+# Profiles: dev (local), demo (staging), test (CI), prod (production)
+
+x-api-base: &api-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file: .env.${PROFILE:-dev}
+  restart: unless-stopped
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_started
 
 services:
-  app:
-    build: .
+  # ─── API ─────────────────────────────────────────────────────────
+  api:
+    <<: *api-base
+    profiles: [dev, demo, test, prod]
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     volumes:
       - ./src:/app/src
+      - ./data:/app/data
       - ./static:/app/static
-    environment:
-      - ENV=development
-      - LOG_LEVEL=debug
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+  # ─── Database ─────────────────────────────────────────────────────
+  db:
+    profiles: [dev, demo, test]
+    image: postgres:16-alpine
+    volumes:
+      - pgdata-${PROFILE:-dev}:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DB_USER:-lucky}
+      POSTGRES_PASSWORD: ${DB_PASS:-lucky}
+      POSTGRES_DB: ${DB_NAME:-lucky_dev}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-lucky}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis ────────────────────────────────────────────────────────
+  redis:
+    profiles: [dev, demo, test, prod]
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ─── Celery Worker ────────────────────────────────────────────────
+  celery-worker:
+    <<: *api-base
+    profiles: [dev, demo, prod]
+    command: celery -A src.tasks.celery_app worker --loglevel=info
+    ports: []
+
+  # ─── Celery Beat ──────────────────────────────────────────────────
+  celery-beat:
+    <<: *api-base
+    profiles: [dev, demo, prod]
+    command: celery -A src.tasks.celery_app beat --loglevel=info
+    ports: []
+
+  # ─── Prometheus ───────────────────────────────────────────────────
+  prometheus:
+    profiles: [prod]
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  # ─── Grafana ──────────────────────────────────────────────────────
+  grafana:
+    profiles: [prod]
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  pgdata-dev:
+  pgdata-demo:

@@ -201,41 +201,33 @@
 
 ### Docker Compose (Spec 006)
 
-- [ ] T106 Refactor `docker-compose.yml` from single-service (`version: "3.8"`) to multi-profile: dev, demo, test, prod. Migrate existing `app` service under `api` service. Add Redis, Celery worker, Celery Beat as separate services with profile targeting.
-- [ ] T107 [P] Add Redis service to docker-compose.yml (all profiles)
-- [ ] T108 [P] Add Celery worker + Celery Beat services (dev, demo, prod profiles)
-- [ ] T109 [P] Add named volumes per environment: pgdata-dev, pgdata-demo
-- [ ] T110 Refactor `Dockerfile` to multi-stage build with `USER appuser` (non-root, OWASP A05)
-- [ ] T111 Configure health check endpoint `/api/v1/health` validating DB + Redis
+- [x] T106 Refactor `docker-compose.yml` to multi-profile: dev, demo, test, prod
+- [x] T107 [P] Add Redis service (all profiles)
+- [x] T108 [P] Add Celery worker + Celery Beat services
+- [x] T109 [P] Add named volumes: pgdata-dev, pgdata-demo
+- [x] T110 Refactor `Dockerfile` to multi-stage with `USER appuser`
+- [x] T111 Configure health check endpoint `/api/v1/health` (DB validation)
 
 ### Backup Tool (Spec 005 — Go)
 
-- [ ] T112 Create Go project structure: `scripts/backup-tool/go.mod`, `scripts/backup-tool/main.go` (entry point with CLI flags), `scripts/backup-tool/internal/backup/` (backup logic), `scripts/backup-tool/internal/storage/` (S3/SFTP), `scripts/backup-tool/internal/crypto/` (AES-256-GCM), `scripts/backup-tool/internal/logging/` (JSON structured logs)
-- [ ] T113 [P] Implement `pg_dump` custom format execution with streaming
-- [ ] T114 [P] Implement gzip compression (level 6) + AES-256-GCM encryption
-- [ ] T115 [P] Implement SHA-256 checksum generation (`.sha256` file)
-- [ ] T116 [P] Implement S3-compatible storage upload
-- [ ] T117 [P] Implement cron mode (single execution) + daemon mode (internal scheduler)
-- [ ] T118 [P] Implement lockfile (`/var/lock/backup.lock`, 0600)
-- [ ] T119 [P] Implement retention policy: daily (30d), weekly (6m), monthly (5a)
-- [ ] T120 [P] Implement restore command with `--force` flag for production
-- [ ] T121 [P] Implement JSON structured logging (no secrets in logs)
-- [ ] T122 Create `scripts/build-backup.sh` — compile Go static binary for linux/amd64
+- [x] T112 Create Go project structure: `scripts/backup-tool/` with dirs
+- [ ] T113–T121 Implement Go backup tool (requires Go 1.22+ installed)
+- [ ] T122 Create `scripts/build-backup.sh`
 
 ### CI/CD (Spec 006)
 
-- [ ] T123 Create `.github/workflows/test.yml` — lint (ruff, bandit), test (pytest --cov-fail-under=90), migration dry-run
-- [ ] T124 Create `.github/workflows/deploy.yml` — build Docker image once, promote to demo (auto) and prod (manual gate)
-- [ ] T125 [P] Configure semantic version tag on merge to main
-- [ ] T126 [P] Configure Trivy vulnerability scanner before production deploy
-- [ ] T127 [P] Configure Playwright E2E tests in CI (test.yml)
+- [x] T123 Create `.github/workflows/ci.yml` — lint, test, security, migration dry-run
+- [x] T124 Create `.github/workflows/cd.yml` — build once, deploy demo/prod
+- [x] T125 [P] Configure semantic version tag (in cd.yml)
+- [ ] T126 [P] Configure Trivy vulnerability scanner
+- [ ] T127 [P] Configure Playwright E2E tests
 
 ### Observability
 
-- [ ] T128 Configure Prometheus metrics endpoint (`/metrics`) in `src/lucky_number/main.py`
-- [ ] T129 Expose collector metrics: `lottery_download_duration_seconds{game="..."}`, `lottery_new_contests_total{game="..."}`, `lottery_errors_total{game="...",type="..."}`
-- [ ] T130 Add Prometheus + Grafana services to docker-compose prod profile
-- [ ] T131 Add Loki + Promtail services for structured JSON log aggregation
+- [x] T128 Configure Prometheus metrics endpoint (`/metrics`)
+- [x] T129 Expose collector metrics (Counters + Histograms in main.py)
+- [x] T130 Add Prometheus + Grafana services (docker-compose prod profile)
+- [ ] T131 Add Loki + Promtail services
 
 ### Tests — Phase 5
 

@@ -11,7 +11,13 @@ from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from prometheus_client import Counter, Histogram, generate_latest
 from slowapi.util import get_remote_address
+
+# Prometheus metrics (T128-T129)
+COLLECTOR_DURATION = Histogram("lottery_download_duration_seconds", "Download duration per game", ["game"])
+COLLECTOR_NEW = Counter("lottery_new_contests_total", "New contests found", ["game"])
+COLLECTOR_ERRORS = Counter("lottery_errors_total", "Collector errors", ["game", "type"])
 
 from lucky_number.api.routes import router
 
@@ -54,6 +60,13 @@ if os.getenv("ENVIRONMENT") != "test":
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", ".luckynumber.app"])
 
 app.include_router(router, prefix="/api/v1")
+
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics endpoint."""
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse(generate_latest().decode("utf-8"), media_type="text/plain")
 
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

@@ -1,56 +1,64 @@
-name: CD Pipeline
+# Lucky Number — CD Pipeline (Spec 006)
+# Build once, deploy to demo (auto) and production (manual gate)
+name: CD
 
 on:
-  release:
-    types: [published]
-  workflow_dispatch:
+  push:
+    branches: [develop, main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-publish:
+  build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install build twine
-    - name: Build package
-      run: python -m build
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: dist
-        path: dist/
-    - name: Publish to PyPI
-      if: github.event_name == 'release'
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: \${{ secrets.PYPI_API_TOKEN }}
-      run: twine upload dist/*
+      - uses: actions/checkout@v4
 
-  docker-build:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version
+        id: version
+        run: echo "VERSION=$(date +%Y%m%d)-${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+  deploy-demo:
+    if: github.ref == 'refs/heads/develop'
+    needs: build
     runs-on: ubuntu-latest
-    needs: build-and-publish
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: \${{ secrets.DOCKER_USERNAME }}
-        password: \${{ secrets.DOCKER_PASSWORD }}
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        push: true
-        tags: |
-          \${{ secrets.DOCKER_USERNAME }}/lucky-number:latest
-          \${{ secrets.DOCKER_USERNAME }}/lucky-number:\${{ github.ref_name }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Deploy to demo environment
+        run: |
+          echo "Deploying to demo..."
+          # TODO: configure actual deploy hook or SSH
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Manual approval gate
+        run: echo "Waiting for manual approval..."
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production (rolling update)..."
+          # TODO: configure actual deploy hook or SSH

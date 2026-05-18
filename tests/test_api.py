@@ -32,11 +32,12 @@ class TestHealthEndpoint:
     """Testes para endpoint /health."""
 
     def test_get_health(self, client):
-        """Deve retornar status ok."""
+        """Deve retornar status ok (ou degraded sem DB)."""
         response = client.get("/api/v1/health")
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "ok"
+        assert data["status"] in ("ok", "degraded")
+        assert "database" in data
         assert "timestamp" in data
 
 
