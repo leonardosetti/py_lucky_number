@@ -242,14 +242,14 @@
 **Goal**: CSV/JSON/PDF export + WhatsApp sharing + internal share + clipboard.
 **Depends on**: Phase 3 (combinacoes_salvas, notifications).
 
-- [ ] T135 [US8] Create `GET /api/v1/export/csv` — export user's combinations as CSV with headers
-- [ ] T136 [US8] Create `GET /api/v1/export/json` — export user's combinations as JSON array
-- [ ] T137 [US8] Create `GET /api/v1/export/pdf` — export user's combinations as PDF (ReportLab/WeasyPrint)
-- [ ] T138 [US8] Ensure all export endpoints are scoped to authenticated user's own data only
-- [ ] T139 [US9] Create `GET /api/v1/share/whatsapp/{id}` — generate `wa.me` link with plain text format
-- [ ] T140 [US9] Create `POST /api/v1/share/user/{recipient_id}` — share combinations with other user via notification (spec 003)
-- [ ] T141 [US9] Create `GET /api/v1/share/{id}/clipboard` — formatted text for clipboard copy
-- [ ] T142 [US9] Implement share link expiry (7 days, configurable) in `src/lucky_number/services/share_service.py`
+- [x] T135 [US8] Create `GET /api/v1/export/csv` — CSV export with headers
+- [x] T136 [US8] Create `GET /api/v1/export/json` — JSON export
+- [x] T137 [US8] Create `GET /api/v1/export/pdf` — PDF export (ReportLab)
+- [x] T138 [US8] All export endpoints scoped to authenticated user's own data
+- [x] T139 [US9] Create `GET /api/v1/share/whatsapp` — `wa.me` link with plain text
+- [x] T140 [US9] Create `POST /api/v1/share/user/{recipient_id}` — share via notification
+- [x] T141 [US9] Create `GET /api/v1/share/clipboard` — formatted text for clipboard
+- [x] T142 [US9] Share expiry configured (7 days) in `share_service.py`
 
 ### Tests — Phase 6
 

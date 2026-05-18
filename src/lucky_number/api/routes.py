@@ -469,6 +469,68 @@ async def dashboard_events(event_type: str = None, page: int = 1, per_page: int 
         return [{"id": str(e.id), "type": e.event_type, "regiao": e.regiao, "at": str(e.created_at)} for e in result.scalars().all()]
 
 
+# ─── Export & Share (Spec 019) ─────────────────────────────────────────
+
+
+@router.get("/export/csv")
+async def export_csv(current_user=Depends(get_current_user)):
+    """Export user's combinations as CSV. Prevents CWE-79: output encoding."""
+    from lucky_number.services.share_service import generate_csv, get_user_combinations
+    from fastapi.responses import PlainTextResponse
+    combos = await get_user_combinations(str(current_user["id"]))
+    csv_content = generate_csv(combos)
+    return PlainTextResponse(csv_content, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=combinacoes.csv"})
+
+
+@router.get("/export/json")
+async def export_json(current_user=Depends(get_current_user)):
+    """Export user's combinations as JSON."""
+    from lucky_number.services.share_service import generate_json, get_user_combinations
+    from fastapi.responses import PlainTextResponse
+    combos = await get_user_combinations(str(current_user["id"]))
+    return PlainTextResponse(generate_json(combos), media_type="application/json", headers={"Content-Disposition": "attachment; filename=combinacoes.json"})
+
+
+@router.get("/export/pdf")
+async def export_pdf(current_user=Depends(get_current_user)):
+    """Export user's combinations as PDF."""
+    from lucky_number.services.share_service import generate_pdf
+    from fastapi.responses import Response
+    pdf_bytes = await generate_pdf(str(current_user["id"]))
+    return Response(pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": "attachment; filename=combinacoes.pdf"})
+
+
+@router.get("/share/whatsapp")
+async def share_whatsapp(combinacao_id: str = None, current_user=Depends(get_current_user)):
+    """Generate WhatsApp sharing link with plain text."""
+    from lucky_number.services.share_service import format_whatsapp_text, get_user_combinations
+    combos = await get_user_combinations(str(current_user["id"]))
+    if combinacao_id:
+        combos = [c for c in combos if str(c.get("id", "")) == combinacao_id]
+    text = format_whatsapp_text(combos)
+    import urllib.parse
+    wa_link = f"https://wa.me/?text={urllib.parse.quote(text)}"
+    return {"link": wa_link, "expiracao": f"{SHARING_TTL_DAYS} dias"}
+
+
+@router.post("/share/user/{recipient_id}")
+async def share_with_user(recipient_id: str, current_user=Depends(get_current_user)):
+    """Share combinations with another user via notification."""
+    from lucky_number.services.share_service import get_user_combinations, share_with_user as swu
+    combos = await get_user_combinations(str(current_user["id"]))
+    await swu(str(current_user["id"]), recipient_id, combos)
+    return {"message": "Combinações compartilhadas com sucesso"}
+
+
+@router.get("/share/clipboard")
+async def share_clipboard(current_user=Depends(get_current_user)):
+    """Get formatted text for clipboard copy."""
+    from lucky_number.services.share_service import format_clipboard, get_user_combinations
+    from fastapi.responses import PlainTextResponse
+    combos = await get_user_combinations(str(current_user["id"]))
+    return PlainTextResponse(format_clipboard(combos), media_type="text/plain")
+
+
 # ─── Bet Generation ────────────────────────────────────────────────────
 
 
