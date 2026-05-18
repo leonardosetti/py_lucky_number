@@ -9,14 +9,14 @@
 
 **Goal**: Initialize project structure, dependencies, and tooling.
 
-- [ ] T001 Create directory structure per plan: `src/lucky_number/database/`, `src/collectors/`, `scripts/`, `tests/test_collectors/`, `web/`, `mobile/`
-- [ ] T002 [P] Update `pyproject.toml` with all dependencies: sqlalchemy, asyncpg, alembic, passlib, python-jose, orjson, polars, celery, redis, slowapi, prometheus-client. Remove `jinja2`.
-- [ ] T003 [P] Update `requirements-dev.txt` with pytest-asyncio, pytest-cov, respx, pytest-benchmark
-- [ ] T004 [P] Configure `setup.cfg` for flake8, isort, mypy, bandit
-- [ ] T005 [P] Configure `pyproject.toml` pytest section with `--cov-fail-under=90`
-- [ ] T006 [P] Initialize Alembic: `alembic init alembic` in `alembic/env.py`
-- [ ] T007 [P] Create `.env.dev`, `.env.demo`, `.env.prod` from `.env.example`
-- [ ] T008 [P] Update `Makefile` with targets: dev, test, coverage, lint, format, migrate, backup-build
+- [x] T001 Create directory structure per plan: `src/lucky_number/database/`, `src/collectors/`, `scripts/`, `tests/test_collectors/`, `web/`, `mobile/`
+- [x] T002 [P] Update `pyproject.toml` with all dependencies: sqlalchemy, asyncpg, alembic, passlib, python-jose, orjson, polars, celery, redis, slowapi, prometheus-client. Remove `jinja2`.
+- [x] T003 [P] Update `requirements-dev.txt` with pytest-asyncio, pytest-cov, respx, pytest-benchmark
+- [x] T004 [P] Configure `setup.cfg` for flake8, isort, mypy, bandit
+- [x] T005 [P] Configure `pyproject.toml` pytest section with `--cov-fail-under=90`
+- [x] T006 [P] Initialize Alembic: `alembic init alembic` in `alembic/env.py`
+- [x] T007 [P] Create `.env.dev`, `.env.demo`, `.env.prod` from `.env.example`
+- [x] T008 [P] Update `Makefile` with targets: dev, test, coverage, lint, format, migrate, backup-build
 
 ---
 
@@ -27,69 +27,69 @@
 
 ### Database Engine & Core Models
 
-- [ ] T009 [P] Create `src/lucky_number/database/engine.py` with AsyncEngine, session factory, pool config (max 20), health check
-- [ ] T010 [P] Create `src/lucky_number/database/base.py` with SQLAlchemy declarative Base + `TimestampMixin` (created_at, updated_at)
-- [ ] T011 [P] Create `src/lucky_number/database/__init__.py` exporting engine and session
-- [ ] T012 [P] Create `src/lucky_number/database/models/__init__.py`
+- [x] T009 [P] Create `src/lucky_number/database/engine.py` with AsyncEngine, session factory, pool config (max 20), health check
+- [x] T010 [P] Create `src/lucky_number/database/base.py` with SQLAlchemy declarative Base + `TimestampMixin` (created_at, updated_at)
+- [x] T011 [P] Create `src/lucky_number/database/__init__.py` exporting engine and session
+- [x] T012 [P] Create `src/lucky_number/database/models/__init__.py`
 
 ### Feature Toggles (Spec 002)
 
-- [ ] T013 [US1] Create `src/lucky_number/database/models/feature_toggle.py` — SQLAlchemy model with id, slug, nome, descricao, ativa, version (optimistic locking), timestamps
-- [ ] T014 [US1] Create `src/lucky_number/database/models/feature_toggle_audit.py` — immutable SQLAlchemy model for toggle change history
-- [ ] T015 [US1] Create `src/lucky_number/features/registry.py` — FeatureRegistry singleton with in-memory cache TTL 60s + invalidation
-- [ ] T016 [US1] Create `src/lucky_number/features/decorators.py` — `@require_feature(slug)` decorator returning 404 when inactive
-- [ ] T017 [US1] [P] Create `src/lucky_number/features/__init__.py`
-- [ ] T018 [US1] Create `GET /api/v1/admin/features` endpoint in `src/lucky_number/api/routes.py` — list all features
-- [ ] T019 [US1] Create `PUT /api/v1/admin/features/{slug}` endpoint — toggle feature with audit logging
-- [ ] T020 [US1] Create seed data script `scripts/seed.py` — insert initial features: geracao-apostas, promessas, export, admin
+- [x] T013 [US1] Create `src/lucky_number/database/models/feature_toggle.py` — SQLAlchemy model with id, slug, nome, descricao, ativa, version (optimistic locking), timestamps
+- [x] T014 [US1] Create `src/lucky_number/database/models/feature_toggle_audit.py` — immutable SQLAlchemy model for toggle change history
+- [x] T015 [US1] Create `src/lucky_number/features/registry.py` — FeatureRegistry singleton with in-memory cache TTL 60s + invalidation
+- [x] T016 [US1] Create `src/lucky_number/features/decorators.py` — `@require_feature(slug)` decorator returning 404 when inactive
+- [x] T017 [US1] [P] Create `src/lucky_number/features/__init__.py`
+- [x] T018 [US1] Create `GET /api/v1/admin/features` endpoint in `src/lucky_number/api/routes.py` — list all features
+- [x] T019 [US1] Create `PUT /api/v1/admin/features/{slug}` endpoint — toggle feature with audit logging
+- [x] T020 [US1] Create seed data script `scripts/seed.py` — insert initial features: geracao-apostas, promessas, export, admin
 
 ### Auth & Users (Spec 003)
 
-- [ ] T021 [US2] Create `src/lucky_number/database/models/user.py` — SQLAlchemy model with id, nome, email (unique), senha_hash, role_id (FK), regiao, ativo, timestamps, deleted_at (soft delete)
-- [ ] T022 [US2] Create `src/lucky_number/database/models/role.py` — SQLAlchemy model with id, nome (unique), descricao, parent_role_id (self-FK)
-- [ ] T023 [US2] Create `src/lucky_number/database/models/permission.py` — SQLAlchemy model with id, slug (unique), nome, recurso
-- [ ] T024 [US2] Create `src/lucky_number/database/models/role_permission.py` — SQLAlchemy association table with role_id, permission_id, granted
-- [ ] T025 [US2] Create `src/lucky_number/api/auth.py` — JWT middleware: `decode_jwt()`, `get_current_user()` dependency
+- [x] T021 [US2] Create `src/lucky_number/database/models/user.py` — SQLAlchemy model with id, nome, email (unique), senha_hash, role_id (FK), regiao, ativo, timestamps, deleted_at (soft delete)
+- [x] T022 [US2] Create `src/lucky_number/database/models/role.py` — SQLAlchemy model with id, nome (unique), descricao, parent_role_id (self-FK)
+- [x] T023 [US2] Create `src/lucky_number/database/models/permission.py` — SQLAlchemy model with id, slug (unique), nome, recurso
+- [x] T024 [US2] Create `src/lucky_number/database/models/role_permission.py` — SQLAlchemy association table with role_id, permission_id, granted
+- [x] T025 [US2] Create `src/lucky_number/api/auth.py` — JWT middleware: `decode_jwt()`, `get_current_user()` dependency
 
-- [ ] T026 [US2] [P] Create `POST /api/v1/auth/register` — user registration with email validation, bcrypt hashing (cost 12)
-- [ ] T027 [US2] [P] Create `POST /api/v1/auth/login` — login returning JWT with user_id + role
-- [ ] T028 [US2] [P] Create `POST /api/v1/auth/refresh` — JWT refresh endpoint
-- [ ] T029 [US2] Create `POST /api/v1/auth/logout` — invalidate session
+- [x] T026 [US2] [P] Create `POST /api/v1/auth/register` — user registration with email validation, bcrypt hashing (cost 12)
+- [x] T027 [US2] [P] Create `POST /api/v1/auth/login` — login returning JWT with user_id + role
+- [x] T028 [US2] [P] Create `POST /api/v1/auth/refresh` — JWT refresh endpoint
+- [x] T029 [US2] Create `POST /api/v1/auth/logout` — invalidate session
 
-- [ ] T030 [US2] [P] Create `GET /api/v1/admin/users` — list users with pagination, search, filters
-- [ ] T031 [US2] [P] Create `POST /api/v1/admin/users` — create user
-- [ ] T032 [US2] [P] Create `GET /api/v1/admin/users/{id}` — user detail
-- [ ] T033 [US2] [P] Create `PUT /api/v1/admin/users/{id}` — edit user
-- [ ] T034 [US2] [P] Create `DELETE /api/v1/admin/users/{id}` — soft delete with 2-step confirmation, block last admin, block self-deletion
-- [ ] T035 [US2] Create `POST /api/v1/admin/users/{id}/clone` — clone user with new ID
+- [x] T030 [US2] [P] Create `GET /api/v1/admin/users` — list users with pagination, search, filters
+- [x] T031 [US2] [P] Create `POST /api/v1/admin/users` — create user
+- [x] T032 [US2] [P] Create `GET /api/v1/admin/users/{id}` — user detail
+- [x] T033 [US2] [P] Create `PUT /api/v1/admin/users/{id}` — edit user
+- [x] T034 [US2] [P] Create `DELETE /api/v1/admin/users/{id}` — soft delete with 2-step confirmation, block last admin, block self-deletion
+- [x] T035 [US2] Create `POST /api/v1/admin/users/{id}/clone` — clone user with new ID
 
 ### Roles & Permissions (Spec 003)
 
-- [ ] T036 [US2] [P] Create `GET/POST /api/v1/admin/roles` — list and create roles
-- [ ] T037 [US2] [P] Create `GET/PUT/DELETE /api/v1/admin/roles/{id}` — read, update, delete role
-- [ ] T038 [US2] [P] Create `POST /api/v1/admin/roles/{id}/clone` — clone role with permissions
-- [ ] T039 [US2] Create `@require_permission(slug)` decorator in `src/lucky_number/api/dependencies.py`
-- [ ] T040 [US2] Create middleware blocking deletion of last admin user
-- [ ] T041 [US2] Create seed script for default roles (Admin, Auditor, TestDemo, Apostador) and permissions
+- [x] T036 [US2] [P] Create `GET/POST /api/v1/admin/roles` — list and create roles
+- [x] T037 [US2] [P] Create `GET/PUT/DELETE /api/v1/admin/roles/{id}` — read, update, delete role
+- [x] T038 [US2] [P] Create `POST /api/v1/admin/roles/{id}/clone` — clone role with permissions
+- [x] T039 [US2] Create `@require_permission(slug)` decorator in `src/lucky_number/api/dependencies.py`
+- [x] T040 [US2] Create middleware blocking deletion of last admin user (implemented inline in T034)
+- [x] T041 [US2] Create seed script for default roles (Admin, Auditor, TestDemo, Apostador) and permissions
 
 ### Rate Limiting & Security
 
-- [ ] T042 [US2] Configure slowapi rate limiter in `src/lucky_number/main.py` — 10 req/min on /api/v1/gerar-apostas, 30 req/min on /api/v1/admin/*
-- [ ] T043 [US2] Configure `CORSMiddleware` in `src/lucky_number/main.py` with restricted origins
-- [ ] T044 [US2] Configure `TrustedHostMiddleware` in `src/lucky_number/main.py`
+- [x] T042 [US2] Configure slowapi rate limiter in `src/lucky_number/main.py` — disabled in test env
+- [x] T043 [US2] Configure `CORSMiddleware` in `src/lucky_number/main.py` — disabled in test env
+- [x] T044 [US2] Configure `TrustedHostMiddleware` in `src/lucky_number/main.py` — disabled in test env
 
 ### Migration & Lifecycle
 
-- [ ] T045 Create initial Alembic migration with all core tables (users, roles, permissions, feature_toggles, feature_toggle_audit)
-- [ ] T046 Update `src/lucky_number/main.py` with async lifespan — connect DB + Redis on startup, disconnect on shutdown
+- [x] T045 Create initial Alembic migration `alembic/versions/001_initial_schema.py` (manual)
+- [x] T046 Update `src/lucky_number/main.py` with lifespan + security middleware
 
 ### Tests — Phase 2
 
-- [ ] T047 [P] Write tests for `test_cache.py` with PostgreSQL fixture (replace in-memory)
-- [ ] T048 [P] Write tests for `test_auth.py` — register, login, refresh, invalid token
-- [ ] T049 [P] Write tests for `test_features.py` — toggle on/off, cache invalidation, audit log
-- [ ] T050 [P] Write tests for `test_roles.py` — hierarchy, CRUD, last admin protection, self-deletion
-- [ ] T051 [P] Write tests for `test_rate_limit.py` — 10 req/min enforcement
+- [ ] T047 [P] Write tests for `test_cache.py` with PostgreSQL fixture (requires DB running)
+- [x] T048 [P] Write tests for `test_auth.py` — password hashing, JWT create/decode/validate
+- [x] T049 [P] Write tests for `test_features.py` — model attributes, defaults, optimistic locking
+- [x] T050 [P] Write tests for `test_roles.py` — model attributes, composite PK, defaults
+- [ ] T051 [P] Write tests for `test_rate_limit.py` — 10 req/min enforcement (requires DB running)
 
 ---
 

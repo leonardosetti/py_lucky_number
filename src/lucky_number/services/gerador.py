@@ -1,14 +1,14 @@
-"""Gerador de combinações únicas nunca sorteadas."""
+"""Gerador de combinações únicas nunca sorteadas.
 
+Core business logic (Principles I + III). Gera combinações aleatórias
+filtrando contra histórico de sorteios e histórico do próprio usuário.
+"""
 import logging
 import math
 import random
-from typing import Optional
 
 from lucky_number.config import JOGOS, MINIMO_INEGOCIAVEL, Jogo
 from lucky_number.models import ApostaRequest, ApostaResponse
-from lucky_number.services.cache import Cache
-from lucky_number.services.caixa_api import CaixaAPIClient
 
 logger = logging.getLogger(__name__)
 
@@ -17,14 +17,23 @@ class EspacoAmostralEsgotadoError(Exception):
     """Lançado quando todas as combinações possíveis já foram sorteadas."""
 
 
+class HistoryProvider:
+    """Interface para consulta de histórico de combinações.
+
+    Permite que o GeradorDeApostas consulte combinações já sorteadas
+    de forma agnóstica à fonte de dados (cache, banco, API).
+    """
+
+    async def get_drawn_combinations(self, jogo: Jogo) -> set[tuple[int, ...]]:
+        """Retorna conjunto de combinações já sorteadas para um jogo.
+        Implementações concretas podem consultar cache, banco ou API.
+        """
+        return set()
+
+
 class GeradorDeApostas:
-    def __init__(
-        self,
-        cache: Optional[Cache] = None,
-        caixa_api: Optional[CaixaAPIClient] = None,
-    ):
-        self.cache = cache or Cache()
-        self.caixa_api = caixa_api or CaixaAPIClient()
+    def __init__(self, history_provider: HistoryProvider | None = None):
+        self.history_provider = history_provider or HistoryProvider()
 
     async def gerar(
         self,
@@ -36,7 +45,7 @@ class GeradorDeApostas:
 
         Algoritmo:
         1. Valida dezenas_por_aposta >= MINIMO_INEGOCIAVEL (6)
-        2. Carrega histórico do cache (busca da API se necessário)
+        2. Carrega histórico via HistoryProvider
         3. Calcula espaço amostral e verifica viabilidade
         4. Gera combinações aleatórias com random.sample()
         5. Filtra contra histórico e contra já-geradas neste batch
@@ -47,7 +56,7 @@ class GeradorDeApostas:
         if dezenas_por_aposta < MINIMO_INEGOCIAVEL:
             raise ValueError(f"Mínimo de {MINIMO_INEGOCIAVEL} dezenas é inegociável")
 
-        historico = await self._garantir_historico(jogo)
+        historico = await self.history_provider.get_drawn_combinations(jogo)
 
         espaco_amostral = self._calcular_combinacoes(
             config.total_dezenas, dezenas_por_aposta
@@ -102,14 +111,6 @@ class GeradorDeApostas:
             quantidade_apostas=request.quantidade_apostas,
             dezenas_por_aposta=request.dezenas_por_aposta,
         )
-
-    async def _garantir_historico(self, jogo: Jogo) -> set[tuple[int, ...]]:
-        """Garante que o histórico está em cache."""
-        historico = self.cache.get(jogo)
-        if historico is None:
-            historico = await self.caixa_api.buscar_todos_resultados(jogo)
-            self.cache.set(jogo, historico)
-        return historico
 
     def _gerar_combinacao(self, total: int, quantidade: int) -> tuple[int, ...]:
         """Gera uma única combinação ordenada."""

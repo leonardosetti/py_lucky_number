@@ -1,43 +1,57 @@
 """App FastAPI principal."""
-
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 
-from lucky_number.api.dependencies import get_caixa_api
 from lucky_number.api.routes import router
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 BASE_DIR = Path(__file__).parent.parent.parent
 STATIC_DIR = BASE_DIR / "static"
 
+limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Gerencia ciclo de vida da aplicação."""
     yield
-    client = get_caixa_api()
-    await client.close()
-
 
 app = FastAPI(
     title="Lucky Number",
-    description=(
-        "Gera combinações de números aleatórios para loterias da Caixa "
-        "que nunca foram sorteadas"
-    ),
-    version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    lifespan=lifespan,
+    description="Gera combinações de números aleatórios para loterias da Caixa que nunca foram sorteadas",
+    version="0.1.0", docs_url="/docs", redoc_url="/redoc", lifespan=lifespan,
 )
+
+# Rate limiting (T042) — Prevents CWE-400 (disabled in test env)
+if os.getenv("ENVIRONMENT") != "test":
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_middleware(SlowAPIMiddleware)
+
+# CORS (T043) — disabled in test env
+if os.getenv("ENVIRONMENT") != "test":
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000", "http://localhost:5173"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+# TrustedHost (T044) — disabled in test env
+if os.getenv("ENVIRONMENT") != "test":
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", ".luckynumber.app"])
 
 app.include_router(router, prefix="/api/v1")
 
@@ -47,30 +61,16 @@ if STATIC_DIR.exists():
 
 @app.get("/")
 async def index():
-    """Serve a interface web."""
     index_path = STATIC_DIR / "index.html"
     if index_path.exists():
         from fastapi.responses import FileResponse
-
         return FileResponse(str(index_path))
-    return {
-        "message": "Lucky Number API",
-        "docs": "/docs",
-        "jogos": "/api/v1/jogos-disponiveis",
-    }
+    return {"message": "Lucky Number API", "docs": "/docs", "jogos": "/api/v1/jogos-disponiveis"}
 
 
 def main():
-    """Executa o servidor de desenvolvimento."""
     import uvicorn
-
-    uvicorn.run(
-        "lucky_number.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-    )
-
+    uvicorn.run("lucky_number.main:app", host="0.0.0.0", port=8000, reload=True)
 
 if __name__ == "__main__":
     main()

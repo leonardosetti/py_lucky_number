@@ -1,38 +1,30 @@
 """Testes para gerador de combinações."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
 from lucky_number.config import Jogo
 from lucky_number.models import ApostaRequest
-from lucky_number.services.cache import Cache
 from lucky_number.services.gerador import (
     EspacoAmostralEsgotadoError,
     GeradorDeApostas,
+    HistoryProvider,
 )
 
 
 @pytest.fixture
-def mock_cache():
-    """Cache mock com histórico vazio."""
-    cache = MagicMock(spec=Cache)
-    cache.get.return_value = None
-    return cache
+def mock_history():
+    """HistoryProvider mock com histórico vazio."""
+    provider = AsyncMock(spec=HistoryProvider)
+    provider.get_drawn_combinations = AsyncMock(return_value=set())
+    return provider
 
 
 @pytest.fixture
-def mock_api():
-    """API mock com histórico vazio."""
-    api = MagicMock()
-    api.buscar_todos_resultados = AsyncMock(return_value=set())
-    return api
-
-
-@pytest.fixture
-def gerador(mock_cache, mock_api):
+def gerador(mock_history):
     """Gerador com dependências mockadas."""
-    return GeradorDeApostas(cache=mock_cache, caixa_api=mock_api)
+    return GeradorDeApostas(history_provider=mock_history)
 
 
 class TestGeradorDeApostas:
@@ -181,30 +173,20 @@ class TestEspacoAmostral:
         assert gerador._calcular_combinacoes(10, 0) == 1
 
     @pytest.mark.asyncio
-    async def test_espaco_amostral_esgotado(self, mock_cache, mock_api):
+    async def test_espaco_amostral_esgotado(self, mock_history):
         """Deve lançar erro quando espaço amostral esgotado."""
-        # Mock scenario: small sample space (10 combinations)
-        # with 9 already drawn, leaving only 1 available
         historico_grande = {
-            (1, 2, 3, 4, 5, 6),
-            (1, 2, 3, 4, 5, 7),
-            (1, 2, 3, 4, 5, 8),
-            (1, 2, 3, 4, 5, 9),
-            (1, 2, 3, 4, 5, 10),
-            (1, 2, 3, 4, 6, 7),
-            (1, 2, 3, 4, 6, 8),
-            (1, 2, 3, 4, 6, 9),
+            (1, 2, 3, 4, 5, 6), (1, 2, 3, 4, 5, 7),
+            (1, 2, 3, 4, 5, 8), (1, 2, 3, 4, 5, 9),
+            (1, 2, 3, 4, 5, 10), (1, 2, 3, 4, 6, 7),
+            (1, 2, 3, 4, 6, 8), (1, 2, 3, 4, 6, 9),
             (1, 2, 3, 4, 6, 10),
         }
-        mock_cache.get.return_value = historico_grande
+        mock_history.get_drawn_combinations = AsyncMock(return_value=historico_grande)
 
-        gerador = GeradorDeApostas(cache=mock_cache, caixa_api=mock_api)
-
-        # Mock _calcular_combinacoes to return small number
-        # (10 total, 9 used, 1 available)
+        gerador = GeradorDeApostas(history_provider=mock_history)
         gerador._calcular_combinacoes = lambda n, k: 10
 
-        # Request 2 bets when only 1 is available
         with pytest.raises(EspacoAmostralEsgotadoError):
             await gerador.gerar(
                 jogo=Jogo.MEGA_SENA,
@@ -213,12 +195,12 @@ class TestEspacoAmostral:
             )
 
     @pytest.mark.asyncio
-    async def test_nao_gera_combinacao_sorteada(self, mock_cache, mock_api):
+    async def test_nao_gera_combinacao_sorteada(self, mock_history):
         """Não deve gerar combinação já sorteada."""
         sorteadas = {(1, 2, 3, 4, 5, 6)}
-        mock_cache.get.return_value = sorteadas
+        mock_history.get_drawn_combinations = AsyncMock(return_value=sorteadas)
 
-        gerador = GeradorDeApostas(cache=mock_cache, caixa_api=mock_api)
+        gerador = GeradorDeApostas(history_provider=mock_history)
 
         result = await gerador.gerar(
             jogo=Jogo.MEGA_SENA,

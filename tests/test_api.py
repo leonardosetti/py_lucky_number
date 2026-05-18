@@ -1,14 +1,18 @@
 """Testes para rotas da API."""
 
+import os
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 
-from lucky_number.api.dependencies import get_gerador
+from lucky_number.api.auth import get_current_user
 from lucky_number.models import ApostaResponse
 from lucky_number.services.gerador import EspacoAmostralEsgotadoError
+
+
+os.environ["ENVIRONMENT"] = "test"
 
 
 @pytest.fixture
@@ -16,15 +20,12 @@ def client():
     """Cliente de teste."""
     from lucky_number.main import app
 
+    # Override auth dependency to bypass JWT for tests
+    async def override_get_current_user():
+        return {"id": "00000000-0000-0000-0000-000000000001", "email": "admin@test.com", "role": "admin"}
+
+    app.dependency_overrides[get_current_user] = override_get_current_user
     return TestClient(app)
-
-
-@pytest.fixture(autouse=True)
-def clear_lru_cache():
-    """Clear LRU cache before each test to ensure mocks work."""
-    get_gerador.cache_clear()
-    yield
-    get_gerador.cache_clear()
 
 
 class TestHealthEndpoint:
@@ -108,8 +109,9 @@ class TestGerarApostasEndpoint:
         assert response.status_code == 422
 
     def test_post_gerar_apostas_sucesso(self, client):
-        """Deve retornar 200 com dados válidos usando mock direto."""
-        from lucky_number.api import routes
+        """Deve retornar 200 com dados válidos via mock direto."""
+        from lucky_number.main import app
+        from lucky_number.api.dependencies import get_gerador
 
         mock_gerador = MagicMock()
         mock_gerador.gerar_de_request = AsyncMock(
@@ -123,14 +125,8 @@ class TestGerarApostasEndpoint:
             )
         )
 
-        # Temporarily override the dependency
-        original_dependency = routes.router.dependencies.copy()
-        routes.router.dependencies = []
-
         def override_get_gerador():
             return mock_gerador
-
-        from lucky_number.main import app
 
         app.dependency_overrides[get_gerador] = override_get_gerador
 
@@ -149,11 +145,11 @@ class TestGerarApostasEndpoint:
             assert len(data["apostas"]) == 1
         finally:
             app.dependency_overrides.clear()
-            routes.router.dependencies = original_dependency
 
     def test_post_gerar_apostas_espaco_esgotado(self, client):
         """Deve retornar 500 quando espaço amostral esgotado."""
         from lucky_number.main import app
+        from lucky_number.api.dependencies import get_gerador
 
         mock_gerador = MagicMock()
         mock_gerador.gerar_de_request = AsyncMock(
