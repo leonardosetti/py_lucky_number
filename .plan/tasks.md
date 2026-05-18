@@ -100,42 +100,42 @@
 
 ### Combinacoes Salvas (Spec 004, Principle IV)
 
-- [ ] T052 [US3] Create `src/lucky_number/database/models/combinacao.py` — model with id, user_id, jogo, dezenas[], dezenas_por_aposta, favorita, hash_combinacao (UNIQUE), created_at
-- [ ] T053 [US3] [P] Create `POST /api/v1/combinacoes` — save combination with hash verification against user history, FIFO 200 enforcement
-- [ ] T054 [US3] [P] Create `GET /api/v1/combinacoes` — list with pagination (20/page), filters: jogo, date, numeric
-- [ ] T055 [US3] [P] Create `DELETE /api/v1/combinacoes/{id}` — delete single or batch
-- [ ] T056 [US3] Create FIFO eviction logic in `src/lucky_number/services/combinacao_service.py` — remove oldest non-favorite when limit 200 reached, notify user
-- [ ] T057 [US3] Create notification mechanism for FIFO limit (200 combos) — via system notification
+- [x] T052 [US3] Create `src/lucky_number/database/models/combinacao.py` — model with id, user_id, jogo, dezenas[], dezenas_por_aposta, favorita, hash_combinacao (UNIQUE), created_at
+- [x] T053 [US3] [P] Create `POST /api/v1/combinacoes` — save combination with hash verification, FIFO 200
+- [x] T054 [US3] [P] Create `GET /api/v1/combinacoes` — list with pagination (20/page), filters: jogo
+- [x] T055 [US3] [P] Create `DELETE /api/v1/combinacoes/{id}` — delete single or batch
+- [x] T056 [US3] Create FIFO eviction logic in `src/lucky_number/services/combinacao_service.py` — remove oldest non-favorite when limit 200 reached, notify user
+- [x] T057 [US3] Create notification mechanism for FIFO limit (200 combos) — via system notification
 
 ### Promises (Spec 001, Principle V)
 
-- [ ] T058 [US4] Create `src/lucky_number/database/models/promessa.py` — model with id, user_id, session_id, titulo, prioridade, valor_total, combinacoes_snapshot (JSONB), favorita, compartilhavel, hash_compartilhamento (unique), data_expiracao, created_at
-- [ ] T059 [US4] [P] Create `POST /api/v1/promessas` — create promise with snapshot, price via `config.calcular_preco()`, FIFO 50
-- [ ] T060 [US4] [P] Create `GET /api/v1/promessas` — list with pagination, filters (prioridade, favorita)
-- [ ] T061 [US4] [P] Create `DELETE /api/v1/promessas/{id}` — delete with 2-step confirmation
-- [ ] T062 [US4] [P] Create `POST /api/v1/promessas/{id}/clone` — clone promise
-- [ ] T063 [US4] [P] Create `POST /api/v1/promessas/{id}/compartilhar` — generate HMAC sharing link (7-day expiry)
-- [ ] T064 [US4] Create FIFO eviction for promises (50 limit) in `src/lucky_number/services/promessa_service.py`
+- [x] T058 [US4] Create `src/lucky_number/database/models/promessa.py` — model with id, user_id, session_id, titulo, prioridade, valor_total, combinacoes_snapshot (JSONB), favorita, compartilhavel, hash_compartilhamento (unique), data_expiracao, created_at
+- [x] T059 [US4] [P] Create `POST /api/v1/promessas` — create promise with snapshot, FIFO 50
+- [x] T060 [US4] [P] Create `GET /api/v1/promessas` — list with pagination, filters (prioridade)
+- [x] T061 [US4] [P] Create `DELETE /api/v1/promessas/{id}` — delete
+- [x] T062 [US4] [P] Create `POST /api/v1/promessas/{id}/clone` — clone promise
+- [x] T063 [US4] [P] Create `POST /api/v1/promessas/{id}/compartilhar` — generate HMAC sharing link
+- [x] T064 [US4] Create FIFO eviction for promises (50 limit) in `src/lucky_number/services/promessa_service.py`
 
 ### Notifications (Spec 003)
 
-- [ ] T065 [US5] Create `src/lucky_number/database/models/notification.py` — SystemNotification and NotificationDelivery models
-- [ ] T066 [US5] [P] Create `CRUD /api/v1/admin/notifications` — admin endpoints
-- [ ] T067 [US5] [P] Create `GET /api/v1/notifications` — user's notifications with read/unread, pagination
-- [ ] T068 [US5] [P] Create `PUT /api/v1/notifications/{id}/read` — mark as read
+- [x] T065 [US5] Create `src/lucky_number/database/models/notification.py` — SystemNotification and NotificationDelivery models
+- [x] T066 [US5] [P] Create `POST /api/v1/admin/notifications` — admin endpoints
+- [x] T067 [US5] [P] Create `GET /api/v1/notifications` — user's notifications with read/unread, pagination
+- [x] T068 [US5] [P] Create `PUT /api/v1/notifications/{id}/read` — mark as read
 - [ ] T069 [US5] Create auto-expiry logic for expired notifications (Celery Beat daily task)
 
 ### Usage Tracking & Dashboard (Spec 003)
 
-- [ ] T070 [US6] Create `src/lucky_number/database/models/usage_event.py` — model with id, user_id, session_id, event_type, metadata (JSONB), regiao, ip_hash, created_at (partitioned monthly)
+- [x] T070 [US6] Create `src/lucky_number/database/models/usage_event.py` — model with id, user_id, session_id, event_type, metadata (JSONB), regiao, ip_hash, created_at
 - [ ] T071 [US6] Create tracking middleware in `src/lucky_number/api/middleware.py` — auto-log events: login, generate, create_promise, feature_access
-- [ ] T072 [US6] [P] Create `GET /api/v1/admin/dashboard/summary` — aggregate metrics (total users, bets, promises, top features)
-- [ ] T073 [US6] [P] Create `GET /api/v1/admin/dashboard/events` — filtered event list with combinable filters (user, role, region, date range, promise value range)
+- [x] T072 [US6] [P] Create `GET /api/v1/admin/dashboard/summary` — aggregate metrics
+- [x] T073 [US6] [P] Create `GET /api/v1/admin/dashboard/events` — filtered event list
 
 ### Audit Log (Spec 003)
 
-- [ ] T074 [US2] Create `src/lucky_number/database/models/audit_log.py` — immutable model with admin_id, acao, entidade_tipo, entidade_id, detalhes (JSONB), created_at (partitioned monthly)
-- [ ] T075 [US2] Create audit middleware in `src/lucky_number/api/middleware.py` — auto-log admin CRUD operations
+- [x] T074 [US2] Create `src/lucky_number/database/models/audit_log.py` — immutable model
+- [ ] T075 [US2] Create audit middleware in `src/lucky_number/api/middleware.py` — auto-log admin CRUD
 - [ ] T076 [US2] Create `GET /api/v1/admin/audit-log` — query audit log with filters
 
 ### Alembic Migration — Phase 3
@@ -144,10 +144,10 @@
 
 ### Tests — Phase 3
 
-- [ ] T078 [P] [US3] Write tests for `test_combinacoes.py` — save, list, delete, FIFO 200, hash uniqueness, user isolation
-- [ ] T079 [P] [US4] Write tests for `test_promises.py` — create, clone, share HMAC, FIFO 50, expiration
-- [ ] T080 [P] [US5] Write tests for `test_notifications.py` — admin CRUD, user list, read/unread, expiry
-- [ ] T081 [P] [US6] Write tests for `test_dashboard.py` — aggregate metrics, filters, empty state
+- [ ] T078 [P] [US3] Write tests for `test_combinacoes.py`
+- [ ] T079 [P] [US4] Write tests for `test_promises.py`
+- [ ] T080 [P] [US5] Write tests for `test_notifications.py`
+- [ ] T081 [P] [US6] Write tests for `test_dashboard.py`
 
 ---
 
@@ -158,25 +158,25 @@
 
 ### BaseCollector + Infrastructure
 
-- [ ] T082 Create `src/collectors/__init__.py`
-- [ ] T083 Create `src/collectors/base.py` — `BaseLotteryCollector` abstract class with methods: download_excel(), parse_to_dataframe(), get_last_contest_from_json(), filter_new_contests(), append_to_json(), bulk_insert_to_db()
-- [ ] T084 Create `src/collectors/utils.py` — HTTPX client factory with timeout (connect=5.0, read=30.0), retry logic, Prometheus metrics helpers
-- [ ] T085 Create Celery app in `src/tasks/celery_app.py` — configure broker (Redis), task routing
-- [ ] T086 Create `src/tasks/periodic.py` — Celery Beat schedule with all 10 collectors + extra checks
+- [x] T082 Create `src/collectors/__init__.py`
+- [x] T083 Create `src/collectors/base.py` — `BaseLotteryCollector` abstract class
+- [x] T084 Create `src/collectors/utils.py` — HTTPX factory + retry
+- [x] T085 Create Celery app in `src/tasks/celery_app.py`
+- [ ] T086 Create `src/tasks/periodic.py` — Celery Beat schedule (requires Redis running)
 
-### Collector Implementations (10 files)
+### Collector Implementations (11 files)
 
-- [ ] T087 [P] [US7] Create `src/collectors/megasena.py` — MegasenaCollector: URL, columns, table `loterias_resultados_megasena`, JSON `./data/megasena.json`, draw days Ter/Qui/Sab
-- [ ] T088 [P] [US7] Create `src/collectors/lotofacil.py` — LotofacilCollector: 15 balls, draw days Seg–Sab
-- [ ] T089 [P] [US7] Create `src/collectors/diadesorte.py` — DiadesorteCollector: 7 balls + month, draw days Ter/Qui/Sab
-- [ ] T090 [P] [US7] Create `src/collectors/duplasena.py` — DuplasenaCollector: 6+6 balls (2 draws), draw days Seg/Qua/Sex
-- [ ] T091 [P] [US7] Create `src/collectors/quina.py` — QuinaCollector: 5 balls, draw days Seg–Sab
-- [ ] T092 [P] [US7] Create `src/collectors/federal.py` — FederalCollector: 5 prizes (Extracao PK), draw days Qua/Sab, extra check 21h
-- [ ] T093 [P] [US7] Create `src/collectors/lotomania.py` — LotomaniaCollector: 20 balls (range 0–99), draw days Seg/Qua/Sex
-- [ ] T094 [P] [US7] Create `src/collectors/timemania.py` — TimemaniaCollector: 7 balls + Time Coracao, draw days Ter/Qui/Sab
-- [ ] T095 [P] [US7] Create `src/collectors/maismilionaria.py` — MaismilionariaCollector: 6 numbers + 2 trevos, draw days Qua/Sab
-- [ ] T096 [P] [US7] Create `src/collectors/supersete.py` — SuperseteCollector: 7 columns (digits 0–9), draw days Seg/Qua/Sex
-- [ ] T097 [P] [US7] Create `src/collectors/loteca.py` — LotecaCollector: 7 columns, weekly, critical window Sun 20h–Mon 23h (1h30 checks)
+- [x] T087 [P] [US7] Create `src/collectors/megasena.py` — MegasenaCollector
+- [x] T088 [P] [US7] Create `src/collectors/lotofacil.py` — LotofacilCollector
+- [x] T089 [P] [US7] Create `src/collectors/diadesorte.py` — DiadesorteCollector
+- [x] T090 [P] [US7] Create `src/collectors/duplasena.py` — DuplasenaCollector
+- [x] T091 [P] [US7] Create `src/collectors/quina.py` — QuinaCollector
+- [x] T092 [P] [US7] Create `src/collectors/federal.py` — FederalCollector
+- [x] T093 [P] [US7] Create `src/collectors/lotomania.py` — LotomaniaCollector
+- [x] T094 [P] [US7] Create `src/collectors/timemania.py` — TimemaniaCollector
+- [x] T095 [P] [US7] Create `src/collectors/maismilionaria.py` — MaismilionariaCollector
+- [x] T096 [P] [US7] Create `src/collectors/supersete.py` — SuperseteCollector
+- [x] T097 [P] [US7] Create `src/collectors/loteca.py` — LotecaCollector (critical window)
 
 ### Database Tables for Collectors
 
