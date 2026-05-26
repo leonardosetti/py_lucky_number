@@ -101,6 +101,7 @@ data/erros/
 .envrc
 .env.local
 .env.*.local
+.env.dev
 config/secrets.yml
 secrets.json
 credentials.json
