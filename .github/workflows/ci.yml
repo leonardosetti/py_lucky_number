@@ -47,6 +47,14 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
           pip install -r requirements-dev.txt
@@ -59,6 +67,11 @@ jobs:
 
       - name: Security scan (bandit)
         run: bandit -r src/ -c pyproject.toml
+
+      - name: Dependency security scan (pip-audit)
+        run: |
+          pip install pip-audit
+          pip-audit --requirement=requirements.txt --requirement=requirements-dev.txt --ignore-edits
 
       - name: Type check (mypy)
         run: mypy src/lucky_number || true

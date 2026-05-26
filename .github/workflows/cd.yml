@@ -1,5 +1,5 @@
 # Lucky Number — CD Pipeline (Spec 006)
-# Build once, deploy to demo (auto) and production (manual gate)
+# Build once, scan for vulnerabilities, deploy to demo (auto) and production (manual gate)
 name: CD
 
 on:
@@ -30,14 +30,30 @@ jobs:
         id: version
         run: echo "VERSION=$(date +%Y%m%d)-${{ github.sha }}" >> $GITHUB_OUTPUT
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }} .
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.23.0
         with:
-          context: .
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
   deploy-demo:
     if: github.ref == 'refs/heads/develop'
@@ -47,7 +63,7 @@ jobs:
       - name: Deploy to demo environment
         run: |
           echo "Deploying to demo..."
-          # TODO: configure actual deploy hook or SSH
+          # TODO: configure actual deploy hook or SSH (e.g., using SSH, kubectl, or cloud provider CLI)
 
   deploy-production:
     if: github.ref == 'refs/heads/main'
@@ -56,9 +72,17 @@ jobs:
     environment: production
     steps:
       - name: Manual approval gate
-        run: echo "Waiting for manual approval..."
+        uses: peter-evans/slash-command-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          permission: write
+          commands: approve
+          permission-label: 'approved'
+          # Alternatively, use built-in environment protection rules with required reviewers
 
       - name: Deploy to production
+        if: github.event.name == 'workflow_dispatch' && github.event.inputs.approved == 'true' || env.APPROVED == 'true'
         run: |
           echo "Deploying to production (rolling update)..."
-          # TODO: configure actual deploy hook or SSH
+          # TODO: configure actual deploy hook or SSH (e.g., using SSH, kubectl, or cloud provider CLI)
+          # Example: ssh user@server 'docker pull image && docker-compose pull && docker-compose up -d'
