@@ -2,6 +2,7 @@
 
 **Feature Branch**: `020-web-frontend`
 **Created**: 2026-05-14
+**Last Updated**: 2026-05-26
 **Status**: Draft
 **Input**: Primeira versão de implementação para UI/UX WEB do Lucky Number,
 conforme Constitution Princípio VII (Cross-Platform App + UI/UX) e Bloco 2
@@ -17,17 +18,21 @@ sistema: geração de apostas, histórico do usuário, promessas, notificações
 dashboard admin e exportação. Acessibilidade WCAG 2.2 AA, data-testid em todos
 os elementos interativos, design responsivo nos breakpoints 320px–1440px.
 
-**Gaps identificados em relação à Constitution e specs existentes**:
+**Gaps e dependências em relação à Constitution e specs existentes**:
 
-| Gap | Origem | Impacto |
-|-----|--------|---------|
-| API de autenticação não implementada (JWT) | Spec 003, Fase 0 | Frontend não pode autenticar usuários |
-| API de `combinacoes_salvas` não implementada | Spec 004, Fase 1 | Histórico do usuário indisponível |
-| API de `promessas` não implementada | Spec 001, Fase 1 | Promessas não podem ser criadas/visualizadas |
-| API de notificações não implementada | Spec 003, Fase 1 | Notificações não podem ser exibidas |
-| API de exportação não implementada | Spec 019, Fase 4 | Export CSV/JSON/PDF indisponível |
-| Coletores CEF não implementados | Specs 007–017 | Dados de sorteios reais indisponíveis |
-| Feature Toggle system não implementado | Spec 002 | Painel admin de features indisponível |
+| Dependência | Origem | Status |
+|-------------|--------|--------|
+| Autenticação JWT + registro/login | Spec 003, Spec 022 | ✅ Implementado |
+| API `combinacoes_salvas` (CRUD + FIFO) | Spec 004 | ✅ Implementado |
+| API `promessas` (CRUD + FIFO + share) | Spec 001 | ✅ Implementado |
+| API notificações + delivery | Spec 003 | ✅ Implementado |
+| Export CSV/JSON/PDF + WhatsApp share | Spec 019 | ✅ Implementado |
+| Feature Toggles + audit | Spec 002 | ✅ Implementado |
+| Password recovery (forgot/reset/change) | Specs 024–026 | ✅ Implementado |
+| Coletores CEF (11 jogos) | Specs 007–017 | ⚠️ DB migrations pendentes |
+| Dashboard admin + métricas agregadas | Spec 003 | Parcial — rotas existem, filtros combináveis pendentes |
+| Cadastro com validação + ativação | Spec 022 | ✅ Implementado |
+| Suporte a tema claro/escuro | Constitution Bloco 2 | Pendente no frontend |
 
 **Estratégia**: Esta spec define o frontend MVP que consumirá os endpoints
 da API independentemente do estado de implementação do backend. O frontend
@@ -281,7 +286,8 @@ implementadas.
 
 - **API endpoints**: Frontend assumes REST API at `/api/v1/` with JWT auth.
   Endpoints for each feature follow the conventions in specs 001, 002, 003,
-  004, 019. For features not yet implemented, the frontend shows a graceful
+  004, 019. Os fluxos de cadastro e recuperação de senha seguem as specs
+  022–026. For features not yet implemented, the frontend shows a graceful
   "Em breve" message.
 - **Language/framework**: **Next.js 16** (definido via benchmark). SSR para
   páginas públicas (landing, login, register), ISR para resultados de sorteios,

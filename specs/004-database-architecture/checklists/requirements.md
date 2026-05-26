@@ -1,7 +1,7 @@
 # Specification Quality Checklist: Database Architecture
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-05-14
+**Created**: 2026-05-26
 **Feature**: [spec.md](spec.md)
 
 ## Content Quality
@@ -31,11 +31,15 @@
 
 ## Notes
 
-- Spec 004 (v2.3): FR-001 a FR-037 sequenciais e sem gaps.
+- Spec 004 (v2.4): FR-001 a FR-037 sequenciais e sem gaps.
+- FR numbering corrigido: FR-036/037 movidos para FR-028/029 (Session & Cache),
+  Audit & Performance reordenado como FR-030-037.
+- Relationship section expandida para specs 019–026.
+- Assumptions atualizadas (FR-036 → FR-028, specs 019-021 → 019-026).
 - Issues R3/R5/R9 resolvidas: `promessas` com `compartilhavel` BOOLEAN + FIFO 50.
 - Issues R1/R2/R4/R6/R7/R8 tratadas no Plan e specs 002/003.
 - Spec 019 criada (Export & Share) — Constitution VI.
-- **26 tabelas** no total: 16 entidades + 10 `loterias_resultados_{jogo}`.
+- **28 tabelas** no total: 18 entidades + 10 `loterias_resultados_{jogo}`.
 - Tabela `sorteios_historicos` **removida** — hash lookup O(1) feito
   diretamente em cada `loterias_resultados_{jogo}` via `hash_combinacao`.
 - `combinacoes_salvas` refatorada: agora com `hash_combinacao` UNIQUE,
@@ -46,7 +50,7 @@
 - Exceções documentadas: Federal usa `Extração`/`hash_extracao`; Federal,
   Super Sete e Loteca sem GIN.
 - pgBackRest (físico) + Go tool (lógico) — complementares, documentados.
-- FR-036 e FR-037 (Redis para sessão anônima + cache de toggles).
+- FR-028 e FR-029 (Redis para sessão anônima + cache de toggles).
 - BRIN rationale documentado na seção 6.4.
-- Alinhado com Constitution v1.3.0.
+- Alinhado com Constitution v1.5.0 e specs 019–026.
 - Spec ready for next phase (`/speckit.plan`).

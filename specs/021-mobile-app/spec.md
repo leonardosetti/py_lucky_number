@@ -2,6 +2,7 @@
 
 **Feature Branch**: `021-mobile-app`
 **Created**: 2026-05-14
+**Last Updated**: 2026-05-26
 **Status**: Draft
 **Input**: Primeira versão de implementação para UI/UX MOBILE do Lucky Number,
 conforme Constitution Princípio VII (Cross-Platform App + UI/UX) e Bloco 2
@@ -19,15 +20,17 @@ por bottom tabs, gestos (swipe), biometria, notificações push e suporte
 offline parcial. A implementação pode ser nativa (Kotlin/Compose + Swift/SwiftUI)
 ou multiplataforma (React Native), a definir após benchmark (Constitution VII).
 
-**Gaps identificados em relação à Constitution e specs existentes**:
+**Gaps e dependências em relação à Constitution e specs existentes**:
 
-| Gap | Origem | Impacto |
+| Dependência | Origem | Status |
 |---|---|---|
-| API de autenticação não implementada | Spec 003 | App não pode autenticar |
-| APIs de domínio não implementadas | Specs 001–004 | Funcionalidades core indisponíveis |
-| Push notifications sem backend | Spec 003 | Notificações não chegam em background |
-| Offline storage sem schema definido | Spec 004 Bloco 3 | Cache local não implementado |
-| Benchmark mobile não realizado | Constitution VII | Framework indefinido |
+| Autenticação JWT + registro/login | Spec 003, Spec 022, Spec 023 | ✅ Implementado no backend |
+| APIs de domínio (combinacoes, promessas) | Specs 001–004 | ✅ Implementado |
+| Push notifications backend | Spec 003 | ✅ NotificationService criado |
+| Mobile registration flow | Spec 023 | Pendente — implementação mobile |
+| Password recovery mobile | Specs 024–026 | ✅ Backend implementado |
+| Offline storage schema | Spec 004 Bloco 3 | Pendente — schema SQLite a definir |
+| Benchmark mobile | Constitution VII | ✅ Nativo definido (Kotlin/Compose + Swift/SwiftUI) |
 
 ---
 
@@ -263,7 +266,8 @@ ou multiplataforma (React Native), a definir após benchmark (Constitution VII).
   **iOS 15.0** — ~95% cobertura Brasil. Definição baseada em análise de
   mercado 2025–2026.
 - **API compatibility**: Mesma API REST do web frontend (spec 020).
-  Contratos e entidades são compartilhados.
+  Contratos e entidades são compartilhados. Fluxo de cadastro mobile
+  segue spec 023 (apostador-mobile-registration).
 - **Push notifications**: Requer serviço de push (FCM para Android,
   APNs para iOS, ou Expo Push para React Native). Implementação depende
   do framework escolhido.

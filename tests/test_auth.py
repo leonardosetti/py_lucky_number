@@ -1,10 +1,7 @@
 """Testes para o sistema de autenticação (Spec 003)."""
 import pytest
-from passlib.context import CryptContext
 
 from lucky_number.api.auth import create_access_token, decode_jwt, hash_password, verify_password
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class TestPasswordHashing:
@@ -37,6 +34,5 @@ class TestJWT:
         assert "exp" in decoded
 
     def test_invalid_token_raises(self):
-        from jose import JWTError
         with pytest.raises(Exception):
             decode_jwt("invalid.token.here")

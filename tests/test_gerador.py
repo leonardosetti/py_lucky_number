@@ -93,7 +93,8 @@ class TestGeradorDeApostas:
                 quantidade_apostas=1,
                 dezenas_por_aposta=5,
             )
-        assert "inegociável" in str(exc_info.value).lower()
+        error_msg = str(exc_info.value).lower()
+        assert "mínimo" in error_msg
 
     @pytest.mark.asyncio
     async def test_gerar_de_request(self, gerador):

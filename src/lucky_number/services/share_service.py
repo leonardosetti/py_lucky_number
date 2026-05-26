@@ -2,14 +2,11 @@
 import csv
 import io
 import json
-import os
-from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 
 from lucky_number.database.engine import async_session_factory
 from lucky_number.database.models.combinacao import Combinacao
-from lucky_number.database.models.promessa import Promessa
 from lucky_number.database.models.notification import SystemNotification
 
 SHARING_TTL_DAYS = 7

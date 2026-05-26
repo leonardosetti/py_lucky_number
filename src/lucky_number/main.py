@@ -2,7 +2,6 @@
 import logging
 import os
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,21 +9,24 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from prometheus_client import Counter, Histogram, generate_latest
 from slowapi.util import get_remote_address
+from prometheus_client import Counter, Histogram, generate_latest
+from lucky_number.api.routes import router
 
-# Prometheus metrics (T128-T129)
+# Prometheus metrics
 COLLECTOR_DURATION = Histogram("lottery_download_duration_seconds", "Download duration per game", ["game"])
 COLLECTOR_NEW = Counter("lottery_new_contests_total", "New contests found", ["game"])
 COLLECTOR_ERRORS = Counter("lottery_errors_total", "Collector errors", ["game", "type"])
-
-from lucky_number.api.routes import router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3002")
 
-limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
+# Rate limiting: global + per-endpoint limits (Prevents CWE-400, CWE-307)
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["60/minute"],
+)
 
 
 @asynccontextmanager
@@ -37,7 +39,7 @@ app = FastAPI(
     version="0.1.0", docs_url="/docs", redoc_url="/redoc", lifespan=lifespan,
 )
 
-# Rate limiting (T042) — Prevents CWE-400 (disabled in test env)
+# Rate limiting (T042) — disabled in test env
 if os.getenv("ENVIRONMENT") != "test":
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

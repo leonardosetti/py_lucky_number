@@ -162,7 +162,7 @@
 - [x] T083 Create `src/collectors/base.py` — `BaseLotteryCollector` abstract class
 - [x] T084 Create `src/collectors/utils.py` — HTTPX factory + retry
 - [x] T085 Create Celery app in `src/tasks/celery_app.py`
-- [ ] T086 Create `src/tasks/periodic.py` — Celery Beat schedule (requires Redis running)
+- [x] T086 Create `src/tasks/periodic.py` — Celery Beat schedule (11 collector tasks, interval from env var)
 
 ### Collector Implementations (11 files)
 
@@ -180,9 +180,9 @@
 
 ### Database Tables for Collectors
 
-- [ ] T098 [P] Create Alembic migration for `loterias_resultados_megasena` with all columns per spec 007
-- [ ] T099 [P] Create Alembic migrations for remaining 9 `loterias_resultados_{jogo}` tables (008–017)
-- [ ] T100 [P] Create Alembic migration for audit logs (migrations_history, synthetic_data_generation_runs, database_performance_snapshots, backup_history)
+- [x] T098 [P] Create Alembic migration for `loterias_resultados_megasena` with all columns per spec 007
+- [x] T099 [P] Create Alembic migrations for remaining 9 `loterias_resultados_{jogo}` tables (008–017)
+- [x] T100 [P] Create Alembic migration for `audit_log` (included in migration 003)
 
 ### Tests — Phase 4
 

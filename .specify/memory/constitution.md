@@ -214,9 +214,14 @@ implementadas conforme regulamento oficial vigente.
 - **Frontend (Web)**: React + Next.js (SSR opcional) ou Vue.js com PWA.
 - **Mobile**: Android (Kotlin/Compose ou React Native) e iOS (Swift/SwiftUI ou
   React Native) — definido após benchmark.
-- **Segurança**: JWT, bcrypt (custo 12), rate limiting (10 req/min por IP nas
-  APIs de geração), prepared statements (CWE-89), validação Pydantic (CWE-20),
-  logs sanitizados (CWE-200), containers não-root (OWASP A05).
+- **Segurança**: JWT (SECRET_KEY via env var, sem fallback hardcoded — CWE-522),
+  bcrypt (custo 12), rate limiting (10 req/min por IP nas APIs de geração,
+  5 tentativas/login por minuto, bloqueio de 15 min após 5 falhas — CWE-307),
+  prepared statements (CWE-89), validação Pydantic (CWE-20), logs sanitizados
+  (CWE-200), containers não-root (OWASP A05), CSRF token em toda mutação
+  (CWE-352), senha forte obrigatória (mín. 8 chars, maiúscula, minúscula,
+  número, especial — CWE-521), geração criptograficamente segura com
+  `secrets.SystemRandom` em vez de `random` (CWE-338).
 - **Atualização de dados**: 10 coletores automáticos com scheduler Celery Beat
   e verificação extra em janelas críticas.
 - **Containerização**: Docker + Docker Compose (multi-profile), com volumes

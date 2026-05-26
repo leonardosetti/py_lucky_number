@@ -29,7 +29,7 @@ class TestApostaRequest:
                 quantidade_apostas=1,
                 dezenas_por_aposta=5,
             )
-        assert "inegociável" in str(exc_info.value).lower()
+        assert "mínimo" in str(exc_info.value).lower()
 
     def test_aposta_request_dezenas_acima_maximo_megasena(self):
         """Dezenas acima do máximo para Mega-Sena (20) deve falhar."""

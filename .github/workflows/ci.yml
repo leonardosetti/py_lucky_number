@@ -67,6 +67,6 @@ jobs:
         run: |
           pytest tests/ -v --cov=src/lucky_number --cov-report=term --cov-fail-under=70
 
-      - name: Run migration dry-run
+      - name: Run migrations
         run: |
-          alembic upgrade head --sql 2>/dev/null || echo "Migration dry-run skipped (no DB URL)"
+          alembic upgrade head

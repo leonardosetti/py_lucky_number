@@ -1,7 +1,7 @@
 # Specification Quality Checklist: Mobile App
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-05-14
+**Created**: 2026-05-26
 **Feature**: [spec.md](spec.md)
 
 ## Content Quality
@@ -31,12 +31,14 @@
 
 ## Notes
 
-- Spec 021 criada para cobrir Constitution Princípio VII (Mobile App Android + iOS).
+- Spec 021 — Mobile App, atualizada em 2026-05-26.
 - 27 FRs cobrindo: auth + biometria, core features, promises, notifications,
   offline/sync, admin, UI/UX platform.
 - 5 User Stories (2 P1, 2 P2, 1 P3).
-- Gaps: APIs de backend não implementadas, framework mobile a definir após
-  benchmark, push notifications dependem de FCM/APNs.
+- Gaps atualizados: backend APIs já implementadas (JWT, domain, notifications).
+  Framework definido como nativo (Kotlin/Compose + Swift/SwiftUI) conforme
+  benchmark. Pendentes: implementação mobile, schema SQLite offline.
+- Referências adicionadas para spec 023 (apostador-mobile-registration).
 - Offline storage, swipe gestures, deep linking e biometria são diferenciais
   mobile em relação à versão web (spec 020).
 - Spec ready for next phase (`/speckit.plan`).

@@ -2,7 +2,7 @@
 
 > Arquivo central de acompanhamento de tarefas pendentes, especificações não geradas e
 > inconsistências identificadas nas análises de consistência entre artefatos (Constitution,
-> Specs, Plan). Atualizado em: 2026-05-14.
+> Specs, Plan). Atualizado em: 2026-05-26. Última revisão: 2026-05-26 (specs 004, 020, 021 resolvidas).
 
 ---
 
@@ -17,131 +17,170 @@
 
 ---
 
-## 1. Specs Não Geradas (Missing Specs)
+## 1. Resolvidos nesta iteração (2026-05-26)
 
-### 🔴 [019] Export & Share — CSV, JSON, PDF, WhatsApp
+### ✅ Constitution — Segurança, Robustez, Performance, Usabilidade
 
-**Motivação**: Constitution Princípio VI exige exportação de combinações nos formatos
-CSV, JSON, PDF e compartilhamento via WhatsApp (`wa.me`), e-mail entre usuários
-registrados e cópia para área de transferência. Funcionalidade completamente ausente.
+- [x] **Senhas**: Adicionado CWE-521 (password policy obrigatória: 8+ chars, maiúscula, minúscula, número, especial) + limite máximo de 128 chars
+- [x] **Account Lockout**: CWE-307 — 5 tentativas de login falhas bloqueiam por 15 min
+- [x] **CSRF**: CWE-352 — toda mutação requer CSRF token
+- [x] **Randomness**: CWE-338 — `secrets.SystemRandom` substitui `random`
+- [x] **JWT Secret**: `JWT_SECRET_KEY` sem fallback hardcoded (CWE-522)
+- [x] **Rate limiting expandido**: 10 req/min geração, 5 req/min login, bloqueio 15 min
+- [x] **RBAC real**: `require_permission` agora consulta `role_permissions` table
 
-**Escopo mínimo esperado**:
-- [ ] Endpoint `GET /api/v1/export/csv` — exportar combinações em CSV
-- [ ] Endpoint `GET /api/v1/export/json` — exportar combinações em JSON
-- [ ] Endpoint `GET /api/v1/export/pdf` — exportar combinações em PDF
-- [ ] Geração de link `wa.me` com mensagem pré-formatada
-- [ ] Compartilhamento entre usuários registrados (envio por ID interno)
-- [ ] Cópia para área de transferência (suporte via API)
-- [ ] Controle de acesso: próprio usuário exporta apenas suas combinações
+### ✅ Config — 11 jogos no lugar de 6
+
+- [x] Adicionados: Lotomania, Timemania, +Milionária, Super Sete, Loteca
+- [x] `MINIMO_POR_JOGO` por jogo (em vez de `MINIMO_INEGOCIAVEL` global)
+- [x] `config.api_endpoint` corrigido para todos os 11 jogos
+
+### ✅ Models — Criados 4 modelos faltantes
+
+- [x] `Combinacao` (`combinacoes_salvas`)
+- [x] `Promessa` (`promessas`)
+- [x] `SystemNotification` + `NotificationDelivery`
+- [x] `UsageEvent`
+- [x] `models/__init__.py` atualizado com todos os exports
+
+### ✅ Services — Criados 2 serviços faltantes
+
+- [x] `combinacao_service.py` — CRUD + FIFO 200 + hash único
+- [x] `promessa_service.py` — CRUD + FIFO 50 + sharing hash
+
+### ✅ Auth — Endpoints de segurança
+
+- [x] `DELETE /auth/account` — soft delete + anonimização LGPD
+- [x] `validate_password_strength()` em register, reset, change-password, admin create
+- [x] Login lockout tracker (in-memory; Redis em produção)
+
+### ✅ Gerador — Criptograficamente seguro
+
+- [x] `secrets.SystemRandom` em vez de `random` (CWE-338)
+- [x] Validação por jogo específica (min_dezenas do config)
+
+### ✅ Routes — Refatoração de segurança
+
+- [x] Todos os imports movidos para top-level (fim de `__import__` e inline imports)
+- [x] Health check inclui Redis ping
+- [x] `admin_count` usa `func.count()` em vez de load all
+- [x] `clone_user` gera nova senha aleatória (não clona hash)
+- [x] Validação de `dezenas` vazia em save_combinacao
+
+### ✅ Spec 004 — Refatoração (FR numbering + cross-references)
+
+- [x] FR numbering corrigido: FR-036/037 → FR-028/029, Audit & Performance reordenado como FR-030–037
+- [x] Seção "Relationship with Other Specs" expandida para specs 019–026
+- [x] Assumptions atualizadas (FR-036 → FR-028, specs 019-021 → 019-026)
+- [x] Checklist atualizado para v2.4
+
+### ✅ Coletores — Enriquecimento de dados + Celery Beat + correções
+
+- [x] `base.py`: `enrich_record()` computa `hash_combinacao` (SHA-256), `dezenas_ordenadas`, `coletado_em`
+- [x] `bulk_insert_to_db()`: transação + tratamento de erro + fallback sem DB crash
+- [x] `collect()`: enrich antes de salvar JSON/DB; erro DB não corrompe JSON
+- [x] Federal: override para `hash_extracao` (sem dezenas)
+- [x] Super Sete / Loteca: `ball_prefix = "Coluna"`, `has_dezenas = False`
+- [x] +Milionária: `trevos_ordenados` + hash combinado bolas+trevos
+- [x] Migration 003: `"Mês da Sorte"` acento corrigido (Dia de Sorte)
+- [x] `periodic.py`: 11 tasks Celery Beat com `COLETA_INTERVALO_MINUTOS`
+- [x] `__init__.py`: exports todos os 11 coletores
+
+### ✅ Banco — 10 tabelas `loterias_resultados_*` + `audit_log` + HistoryProvider
+
+- [x] Migration 003 criada com todas as 10 tabelas `loterias_resultados_{jogo}` via raw SQL
+- [x] Tabela `audit_log` criada (modelo SQLAlchemy + migration)
+- [x] `lottery_result.py` — registro de nomes de tabelas + `DatabaseHistoryProvider`
+- [x] `HistoryProvider` real consulta `dezenas_ordenadas` de cada jogo
+- [x] `get_gerador()` wired com `DatabaseHistoryProvider` via `get_db_session()`
+- [x] Tasks T098/T099 do plano marcadas como concluídas
+
+### ✅ Specs 020 e 021 — Revisão e alinhamento
+
+- [x] Gaps table atualizada com status real das dependências de backend
+- [x] Referências adicionadas para specs 022–026 (registration, password recovery)
+- [x] Framework mobile confirmado como nativo (Kotlin/Compose + Swift/SwiftUI)
+- [x] Checklists atualizados
+
+### ✅ .env.example
+
+- [x] `JWT_SECRET_KEY` sem fallback default
+- [x] `ACTIVATION_CODE_TTL_HOURS`, `MAX_ACTIVATION_ATTEMPTS`, `REGISTRATION_COOLDOWN_SECONDS`
+- [x] `LOGIN_LOCKOUT_MINUTES`, `MAX_LOGIN_ATTEMPTS`
 
 ---
 
-### 🔴 [020] Web Frontend — Interface Web Responsiva
+## 2. Specs Não Geradas (Missing Specs)
 
-**Motivação**: Constitution Princípio VII exige aplicação web responsiva (mobile-first)
-com React/Next.js ou Vue.js/PWA. Atualmente o projeto possui apenas backend.
-Interface atual é JSON puro + rota `/` com FileResponse.
+### 🟡 [020] Web Frontend — Interface Web Responsiva
 
-**Escopo mínimo esperado**:
-- [ ] Escolha do framework (React + Next.js ou Vue.js + Vite/PWA)
-- [ ] Tela de login/registro
-- [ ] Tela de geração de apostas (seleção de jogo, quantidade, dezenas)
-- [ ] Tela de resultados (combinações salvas, promessas)
-- [ ] Painel admin (features, usuários, notificações, dashboard)
-- [ ] Design responsivo (mobile-first)
-- [ ] Tema claro/escuro
-- [ ] Paginação (20 itens/página)
-- [ ] Suporte a acessibilidade (WCAG 2.1 AA)
+**Motivação**: Constitution Princípio VII exige aplicação web responsiva (mobile-first).
+Spec 020 existe e foi revisada (v2026-05-26). Scaffold Next.js 16 + páginas + Playwright
+criados. Pendências de implementação:
+- [ ] Página de perfil (`/profile`) com alteração de senha
+- [ ] Página de ativação de conta (`/activate`)
+- [ ] Fluxo de redefinição de senha no frontend
+- [ ] Integração com CAPTCHA no cadastro
+- [ ] Suporte a tema claro/escuro consistente
+- [ ] Testes E2E com Playwright (existe scaffold)
 
----
+### 🟡 [021] Mobile App — Android e iOS
 
-### 🔴 [021] Mobile App — Android e iOS
-
-**Motivação**: Constitution Princípio VII (v1.2.0) determina que o software deve ser
-implementado tanto como web-based app quanto como mobile app nativo para Android e
-iOS.
-
-**Escopo mínimo esperado**:
-- [ ] Benchmark e análise de mercado para definir versões mínimas suportadas
-- [ ] Definição da estratégia: React Native (compartilha código com web) vs Kotlin/Compose
-      + Swift/SwiftUI
-- [ ] Funcionalidades equivalentes ao web frontend
-- [ ] Suporte offline parcial (combinações salvas em cache local)
-- [ ] Push notifications para resultados de sorteios
+**Motivação**: Constitution Princípio VII determina mobile nativo.
+Spec 021 existe e foi revisada (v2026-05-26). Scaffold Android (Kotlin) + iOS (Swift)
+criados. Framework nativo confirmado. Pendências de implementação:
+- [ ] Android: fluxo de cadastro completo (spec 023)
+- [ ] iOS: fluxo de cadastro completo (spec 023)
+- [ ] Perfil e configurações mobile
+- [ ] Suporte offline parcial
 
 ---
 
-## 2. Inconsistências e Correções em Specs Existentes
+## 3. Inconsistências e Correções em Specs Existentes
 
-### 🔴 Spec 004 — FRs 001–027 Perdidos na Substituição v2.0
+### ✅ Spec 004 — FRs 001–037 Restaurados e Renumerados
 
-**Problema**: A spec 004 foi substituída pela v2.0 (018→004), mas o novo arquivo
-contém apenas FR-028 a 035 (5 novas tabelas). Os FRs originais 001–027 (ambientes,
-migrações, constraints, segurança, OWASP/CWE) foram perdidos.
+**Problema original**: A spec 004 foi substituída pela v2.0 (018→004), e os
+FRs originais 001–027 foram perdidos. FR-036/037 estavam fora de ordem.
 
-**Ação**: Reincorporar FR-001 a 027 da spec 004 original ao arquivo atual, mantendo
-FR-028 a 035 como extensão.
-
-- [ ] Restaurar FR-001 a 004 (database environments)
-- [ ] Restaurar FR-005 a 008 (schema & migrations)
-- [ ] Restaurar FR-009 a 014 (data integrity & constraints)
-- [ ] Restaurar FR-015 a 023 (security & compliance)
-- [ ] Restaurar FR-024 a 027 (containerization & CI/CD)
-- [ ] Verificar numeração final (deve ser FR-001 a FR-035 sequencial)
-
-### 🟠 Constitution Technical Constraints — `sorteios_historicos` vs `loterias_resultados_*`
-
-**Problema**: Constitution ainda referencia tabela genérica `sorteios_historicos`,
-mas os coletores (specs 007–017) usam `loterias_resultados_{jogo}` (uma por jogo).
-As duas abordagens são mutuamente exclusivas e conflitam.
-
-**Ação**: Atualizar seção "Technical Constraints" na Constitution para refletir
-o schema real.
-
-- [ ] Substituir `sorteios_historicos` por `loterias_resultados_{jogo}` (10 tabelas)
-- [ ] Adicionar nota sobre `Extração` como PK alternativa para Federal
-- [ ] Remover referência obsoleta a tabela única de histórico
+**Resolução**:
+- [x] FR-001 a 004 (database environments) — restaurados
+- [x] FR-005 a 008 (schema & migrations) — restaurados
+- [x] FR-009 a 014 (data integrity & constraints) — restaurados
+- [x] FR-015 a 023 (security & compliance) — restaurados
+- [x] FR-024 a 027 (containerization & CI/CD) — restaurados
+- [x] FR-028 a 029 (Session & Cache — antigos FR-036/037)
+- [x] FR-030 a 037 (Audit & Performance — antigos FR-028/035)
+- [x] Numeração final: FR-001 a FR-037 sequencial ✓
 
 ### 🟡 Spec 002/003 — `feature_toggles` Duplicado
 
 **Problema**: Entidade `feature_toggles` definida em spec 002 (FR-001) e spec 003
-(entidades), sem referência cruzada. Risco de divergência futura.
+(entidades), sem referência cruzada.
 
 **Ação**:
 - [ ] Spec 002: definição canônica da tabela `feature_toggles`
 - [ ] Spec 003: referenciar spec 002 em vez de redefinir
 
-### 🟡 Spec 001 — `combinacoes_salvas` Sem Definição
-
-**Problema**: Tabela `combinacoes_salvas` é referenciada em spec 001 e no schema
-original da spec 004, mas a spec 004 atual (v2.0) não a define. A tabela não tem
-definição de colunas em spec alguma.
-
-**Ação**:
-- [ ] Adicionar definição da tabela em spec 001 ou restaurar em spec 004
-- [ ] Definir colunas: id, user_id, jogo, dezenas, dezenas_por_aposta, favorita,
-      created_at, limit 200/user, FIFO policy
-
 ### 🟡 Spec 004 — Colunas com Espaços/Acentos
 
 **Problema**: Tabelas `loterias_resultados_*` usam nomes de colunas com espaços e
-acentos (ex: `"Data do Sorteio"`, `"Ganhadores 6 acertos"`, `"1º prêmio"`),
-exigindo quoting constante em SQL.
+acentos, exigindo quoting constante em SQL.
 
 **Decisão pendente**: Manter fiel à planilha (com quoting) ou normalizar para
-`snake_case` (ex: `data_sorteio`, `ganhadores_6_acertos`)?
+`snake_case`?
+
 - [ ] Documentar decisão na spec 004
 - [ ] Se normalizar, criar mapeamento planilha → coluna em cada collector
 
 ---
 
-## 3. Funcionalidades Subespecificadas
+## 4. Funcionalidades Subespecificadas
 
 ### 🟡 Spec 003 — Georreferenciamento (FR-022)
 
 **Problema**: FR-022 exige filtro por "região geográfica" no dashboard, mas
-nenhum mecanismo de geolocalização (GeoIP, GPS, cadastro explícito) é definido
-em spec alguma. Assumption em spec 003 diz "região inferida do IP".
+nenhum mecanismo de geolocalização é definido.
 
 **Ação**:
 - [ ] Criar tarefa de implementação para GeoIP (MaxMind ou similar)
@@ -150,8 +189,8 @@ em spec alguma. Assumption em spec 003 diz "região inferida do IP".
 
 ### 🟡 Redis para Sessões Anônimas
 
-**Problema**: Constitution II determina Redis para sessões anônimas
-(combinações efêmeras). Nenhuma spec cobre a integração Redis + sessão.
+**Problema**: Constitution II determina Redis para sessões anônimas.
+Nenhuma spec cobre a integração Redis + sessão.
 
 **Ação**:
 - [ ] Especificar integração Redis no plano de implementação
@@ -160,9 +199,22 @@ em spec alguma. Assumption em spec 003 diz "região inferida do IP".
 
 ---
 
-## 4. Melhorias no Plan
+## 5. Pendências Técnicas
 
-### 🟢 Atualizar Plan com Cobertura de Todas as Specs
+### 🟡 Cobertura de Testes
+
+- [ ] `combinacao_service.py` — 17% coverage
+- [ ] `promessa_service.py` — 19% coverage
+- [ ] `notification_service.py` — 32% coverage (core: email + WhatsApp)
+- [ ] `share_service.py` — 0% coverage
+- [ ] `routes.py` — aumentar cobertura de cenários de erro
+
+### 🟡 Login Lockout em Produção
+
+- [ ] Migrar de in-memory para Redis (CWE-307)
+- [ ] Persistir tentativas entre restart do servidor
+
+### 🟢 Ajustes no Plan
 
 - [ ] Plan atual referencia specs 001–006 e 007–017 mas não menciona spec 004 v2
 - [ ] Adicionar fase específica para specs 019 (Export), 020 (Web), 021 (Mobile)
@@ -170,36 +222,15 @@ em spec alguma. Assumption em spec 003 diz "região inferida do IP".
 
 ---
 
-## 5. Tarefas que Requerem Nova API no Backend
-
-### 🟡 T157 — Página de Perfil (Profile)
-
-**Problema**: A página de perfil (alterar senha, excluir conta - LGPD) requer
-endpoints de API que não existem no backend:
-- `PUT /api/v1/auth/password` — alterar senha (bcrypt)
-- `DELETE /api/v1/auth/account` — excluir conta (soft delete + anonimização LGPD)
-
-**Ação necessária**:
-1. Criar `PUT /api/v1/auth/password` em `src/lucky_number/api/routes.py`
-   - Receber: `current_password`, `new_password`
-   - Validar senha atual, atualizar hash
-2. Criar `DELETE /api/v1/auth/account` em `src/lucky_number/api/routes.py`
-   - Soft delete (ativo=false, deleted_at=now)
-   - Anonimizar dados pessoais (nome → "Usuário removido", email → hash)
-3. Criar página Perfil em `web/src/app/profile/page.tsx`
-   - Formulário de alteração de senha
-   - Botão "Excluir Conta" com confirmação em 2 passos
-
----
-
-## Resumo
+## 6. Resumo
 
 | Tipo | Quantidade |
-|---|---|
-| 🔴 Specs faltantes (CRITICAL) | 3 |
-| 🔴 Inconsistências em specs existentes | 2 |
-| 🟠 Inconsistências Constitution vs Specs | 1 |
-| 🟡 Melhorias em specs / APIs faltantes | 5 |
+|---|---|---|
+| 🔴 Specs faltantes (CRITICAL) | 0 |
+| 🔴 Inconsistências em specs existentes | 0 |
+| 🟡 Melhorias em specs / APIs faltantes | 4 |
 | 🟢 Ajustes no Plan | 1 |
+| 🟡 Pendências técnicas (testes, Redis) | 3 |
+| ✅ Resolvidos nesta iteração | 25+ |
 
-**Total de TODOs**: 29 itens (entre abertos e fechados)
+**Total de TODOs pendentes**: ~10 itens (pendências de implementação, testes, Redis)

@@ -2,6 +2,8 @@
 import time
 from typing import Optional
 
+from sqlalchemy import select
+
 from lucky_number.database.engine import async_session_factory
 from lucky_number.database.models.feature_toggle import FeatureToggle
 
@@ -36,7 +38,7 @@ class FeatureRegistry:
         """Load all feature states from database into cache."""
         async with async_session_factory() as session:
             result = await session.execute(
-                __import__("sqlalchemy").select(FeatureToggle.slug, FeatureToggle.ativa)
+                select(FeatureToggle.slug, FeatureToggle.ativa)
             )
             self._cache = {row[0]: row[1] for row in result}
             self._last_load = time.time()

@@ -5,8 +5,9 @@ import os
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
+from pathlib import Path
 import sys
-sys.path.insert(0, '/lab/repo/py_lucky_number/src')
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from lucky_number.database.base import Base
 import lucky_number.database.models  # noqa: ensure all models are loaded
