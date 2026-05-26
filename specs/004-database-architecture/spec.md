@@ -6,7 +6,7 @@
 **Input**: Arquitetura de banco de dados relacional para o sistema Lucky Number,
 incluindo 4 ambientes, migrações versionadas, 27 tabelas, segurança OWASP/CWE/LGPD,
 e extensões de auditoria e performance.
-**Version**: 2.3
+**Version**: 2.4
 
 ---
 
@@ -16,7 +16,7 @@ Esta especificação define a arquitetura completa do banco de dados PostgreSQL 
 sistema Lucky Number, consolidando:
 
 - **4 ambientes isolados**: produção, testes, desenvolvimento e mirror
-- **26 tabelas**: 16 entidades de domínio/auditoria + 10 tabelas `loterias_resultados_{jogo}`
+- **28 tabelas**: 18 entidades de domínio/auditoria + 10 tabelas `loterias_resultados_{jogo}`
 - **10 tabelas `loterias_resultados_{jogo}`** (uma por jogo CEF)
 - **Migrações versionadas** com SQLAlchemy 2.0 + Alembic
 - **Segurança**: OWASP A05/A07, CWE-89/20/200/400/73, LGPD
@@ -38,6 +38,12 @@ Esta spec é a fundação sobre a qual todas as demais specs se apoiam:
 | 005 – Backup Automation | Tabela `backup_history`, política de retenção |
 | 006 – Environment Mgmt | 4 ambientes, CI/CD, migrações |
 | 007–017 – Data Collectors | 10 tabelas `loterias_resultados_{jogo}` |
+| 019 – Export & Share | Tabelas `share_links`, fila de exportação |
+| 020 – Web Frontend | Consome API sobre este schema |
+| 021 – Mobile App | Consome API sobre este schema |
+| 022 – Apostador Registration | Estende `users` com campos de perfil |
+| 023 – Apostador Mobile Registration | Estende `users` com push tokens |
+| 024–026 – Password Recovery | Tabelas `password_reset_tokens`, `activation_codes` |
 
 ---
 
@@ -200,6 +206,29 @@ Consequência: todo SQL contra estas tabelas DEVE usar aspas duplas.
 | `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() |
 | `updated_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() |
 | `deleted_at` | TIMESTAMPTZ | NULLABLE (soft delete) |
+| `cpf` | VARCHAR(11) | NULLABLE, UNIQUE (Brazilian taxpayer ID) |
+| `telefone` | VARCHAR(20) | NULLABLE (BR format, indexed) |
+| `telefone_pais` | VARCHAR(5) | NULLABLE (country code, e.g., "+55") |
+| `data_nascimento` | DATE | NULLABLE |
+| `nome_completo` | VARCHAR(255) | NULLABLE |
+| `logradouro` | VARCHAR(255) | NULLABLE |
+| `numero` | VARCHAR(20) | NULLABLE |
+| `complemento` | VARCHAR(100) | NULLABLE |
+| `bairro` | VARCHAR(100) | NULLABLE |
+| `cidade` | VARCHAR(100) | NULLABLE |
+| `estado` | VARCHAR(50) | NULLABLE |
+| `cep` | VARCHAR(10) | NULLABLE |
+| `pais` | VARCHAR(50) | NULLABLE, DEFAULT 'Brasil' |
+| `email_verificado_em` | TIMESTAMPTZ | NULLABLE |
+| `telefone_verificado_em` | TIMESTAMPTZ | NULLABLE |
+| `ativado_em` | TIMESTAMPTZ | NULLABLE |
+| `codigo_ativacao_hash` | VARCHAR(128) | NULLABLE (SHA-256 do código) |
+| `tentativas_ativacao` | INTEGER | NOT NULL, DEFAULT 0 |
+| `codigo_ativacao_enviado_em` | TIMESTAMPTZ | NULLABLE |
+| `totp_secret` | VARCHAR(64) | NULLABLE (2FA) |
+| `codigos_reserva` | JSONB | NULLABLE (10 backup codes) |
+| `biometria_habilitada` | BOOLEAN | NOT NULL, DEFAULT false |
+| `dispositivo_push_token` | VARCHAR(255) | NULLABLE (FCM/APNs) |
 
 #### `roles`
 | Column | Type | Constraints |
@@ -356,6 +385,35 @@ Todas as tabelas `loterias_resultados_{jogo}` compartilham:
 | `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() |
 | **Immutable** | | INSERT only |
 
+#### `password_reset_tokens`
+| Column | Type | Constraints |
+|---|---|---|
+| `id` | UUID | PK |
+| `user_id` | UUID | NOT NULL, FK → users.id, ON DELETE CASCADE |
+| `token_hash` | VARCHAR(128) | NOT NULL, UNIQUE (SHA-256 do token) |
+| `canal_entrega` | VARCHAR(20) | NOT NULL, CHECK IN ('email','whatsapp') |
+| `expires_at` | TIMESTAMPTZ | NOT NULL (20 min após criação) |
+| `consumed_at` | TIMESTAMPTZ | NULLABLE (preenchido ao usar) |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() |
+- **Single-use**: Após o consumo, `consumed_at` é preenchido. Tokens com `consumed_at IS NOT NULL` são rejeitados.
+- **Expiração**: Tokens com `expires_at < NOW()` são rejeitados.
+- **Último token válido**: Se múltiplos tokens forem gerados para o mesmo usuário, apenas o mais recente (não-consumido, não-expirado) é válido. Tokens anteriores são implicitamente invalidados.
+
+#### `activation_codes`
+| Column | Type | Constraints |
+|---|---|---|
+| `id` | UUID | PK |
+| `user_id` | UUID | NOT NULL, FK → users.id, ON DELETE CASCADE |
+| `codigo_hash` | VARCHAR(128) | NOT NULL (SHA-256 do código de 6 dígitos) |
+| `canal` | VARCHAR(20) | NOT NULL, CHECK IN ('email','sms','whatsapp') |
+| `expires_at` | TIMESTAMPTZ | NOT NULL (24h após criação) |
+| `tentativas` | INTEGER | NOT NULL, DEFAULT 0 |
+| `max_tentativas` | INTEGER | NOT NULL, DEFAULT 5 |
+| `consumido_em` | TIMESTAMPTZ | NULLABLE |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() |
+- **Limite de tentativas**: Após `max_tentativas` falhas, o código é invalidado e um novo deve ser solicitado.
+- **Expiração**: Códigos expirados (>24h) são rejeitados. A conta pendente associada pode ser removida.
+
 #### `synthetic_data_generation_runs`
 | Column | Type | Constraints |
 |---|---|---|
@@ -479,31 +537,31 @@ consultas de igualdade (PKs, FKs, slugs) continuam usando BTree.
   retention and off-site storage.
 
 ### Session & Cache Infrastructure
-- **FR-036**: Anonymous user sessions MUST be stored in Redis with a
+- **FR-028**: Anonymous user sessions MUST be stored in Redis with a
   configurable TTL (default 30 days). Session ID MUST be a UUID v4.
-- **FR-037**: Application cache for feature toggles (spec 002 FR-008)
+- **FR-029**: Application cache for feature toggles (spec 002 FR-008)
   MUST use Redis as backend with configurable TTL (default 60 seconds),
   invalidated on toggle state change.
 
 ### Audit & Performance Extensions
-- **FR-028**: System MUST record every migration execution (upgrade and
+- **FR-030**: System MUST record every migration execution (upgrade and
   downgrade) in `migrations_history` with revision, action, duration,
   executor, and log output.
-- **FR-029**: System MUST collect performance snapshots from PostgreSQL
+- **FR-031**: System MUST collect performance snapshots from PostgreSQL
   (`pg_stat_statements`, `pg_stat_activity`) every 15 minutes and store
   in `database_performance_snapshots` partitioned by month.
-- **FR-030**: Every feature toggle state change MUST be recorded in
+- **FR-032**: Every feature toggle state change MUST be recorded in
   `feature_toggle_audit` with user UUID, IP hash, and previous/new state.
-- **FR-031**: Every synthetic data generation run MUST be recorded in
+- **FR-033**: Every synthetic data generation run MUST be recorded in
   `synthetic_data_generation_runs` with status, record count, and duration.
-- **FR-032**: A database role `app_agent` MUST be created with read-only
+- **FR-034**: A database role `app_agent` MUST be created with read-only
   access to `pg_stat_statements` and metric tables for AI agent tooling.
-- **FR-033**: A dedicated `migration_user` role MUST be used exclusively
+- **FR-035**: A dedicated `migration_user` role MUST be used exclusively
   for DDL operations, without INSERT privileges on application tables.
-- **FR-034**: BRIN indexes MUST be used on `created_at` columns of
+- **FR-036**: BRIN indexes MUST be used on `created_at` columns of
   high-volume tables to reduce index size and maintain range-scan
   performance.
-- **FR-035**: Production backups MUST use pgBackRest for physical backup
+- **FR-037**: Production backups MUST use pgBackRest for physical backup
   (WAL archiving) with encryption, compression, and integrity verification.
   History recorded in `backup_history`. Logical backups (pg_dump for
   selective export and mirror population) are delegated to the backup-tool
@@ -585,7 +643,7 @@ consultas de igualdade (PKs, FKs, slugs) continuam usando BTree.
 - **Celery Beat available**: 15-minute snapshot collection as periodic task.
 - **Naming convention**: Columns in `loterias_resultados_*` match CEF
   spreadsheet headers exactly (spaces, accents, special chars preserved).
-- **Sessão anônima**: Especificado no FR-036. Redis obrigatório.
+- **Sessão anônima**: Especificado no FR-028. Redis obrigatório.
 - **GeoIP**: Region inferred from IP address via MaxMind GeoLite2
   (free database). IPs não identificáveis agrupados como
   "Região não identificada".
@@ -593,7 +651,7 @@ consultas de igualdade (PKs, FKs, slugs) continuam usando BTree.
   check interval, and session factory setup are defined in plan Phase 0
   (`src/lucky_number/database/engine.py`). This spec defines the schema,
   the plan defines the runtime configuration.
-- **Future specs**: Specs 019–021 (Export & Share, Web Frontend, Mobile
-  App) podem requerer tabelas adicionais não definidas nesta spec
-  (ex: `share_links`, `export_jobs`). Estas serão adicionadas quando
-  as respectivas specs forem criadas.
+- **Specs 019–026**: Export & Share, Web Frontend, Mobile App,
+  Registration Flow e Password Recovery podem requerer tabelas adicionais
+  não definidas nesta spec (ex: `share_links`, `export_jobs`). Estas serão
+  adicionadas quando as respectivas specs forem implementadas.

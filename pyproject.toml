@@ -43,6 +43,10 @@ lucky-number = "lucky_number.main:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool:bandit]
+exclude = /tests/,/.venv/,/node_modules/
+skips = B101
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

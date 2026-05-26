@@ -1,7 +1,7 @@
 # Specification Quality Checklist: Web Frontend
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-05-14
+**Created**: 2026-05-26
 **Feature**: [spec.md](spec.md)
 
 ## Content Quality
@@ -31,11 +31,14 @@
 
 ## Notes
 
-- Spec 020 criada para cobrir Constitution Princípio VII (Cross-Platform App + UI/UX).
+- Spec 020 — Web Frontend, atualizada em 2026-05-26.
 - 30 FRs cobrindo: autenticação, geração, histórico FIFO, promessas, notificações,
   admin dashboard, exportação, testabilidade (data-testid), acessibilidade (WCAG),
   responsividade e segurança.
 - 6 User Stories (4 P1, 2 P2).
-- Gaps identificados na seção 1: APIs de backend ainda não implementadas para
-  várias funcionalidades. Frontend deve tratar erros 501/503 graciosamente.
+- Seção de gaps atualizada: maioria das APIs backend já implementada
+  (JWT, combinacoes, promessas, notificações, export, feature toggles,
+  password recovery). Pendentes: DB migrations dos coletores, tema
+  claro/escuro, filtros combináveis no dashboard.
+- Referências adicionadas para specs 022–026 (registration flow, password recovery).
 - Spec ready for next phase (`/speckit.plan`).

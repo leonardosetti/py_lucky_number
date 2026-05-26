@@ -2,15 +2,18 @@
 
 Core business logic (Principles I + III). Gera combinações aleatórias
 filtrando contra histórico de sorteios e histórico do próprio usuário.
+Prevents CWE-338: uses secrets.SystemRandom for cryptographic security.
 """
 import logging
 import math
-import random
+import secrets
 
-from lucky_number.config import JOGOS, MINIMO_INEGOCIAVEL, Jogo
+from lucky_number.config import JOGOS, MINIMO_POR_JOGO, Jogo
 from lucky_number.models import ApostaRequest, ApostaResponse
 
 logger = logging.getLogger(__name__)
+
+_rng = secrets.SystemRandom()
 
 
 class EspacoAmostralEsgotadoError(Exception):
@@ -25,9 +28,7 @@ class HistoryProvider:
     """
 
     async def get_drawn_combinations(self, jogo: Jogo) -> set[tuple[int, ...]]:
-        """Retorna conjunto de combinações já sorteadas para um jogo.
-        Implementações concretas podem consultar cache, banco ou API.
-        """
+        """Retorna conjunto de combinações já sorteadas para um jogo."""
         return set()
 
 
@@ -43,18 +44,17 @@ class GeradorDeApostas:
     ) -> ApostaResponse:
         """Gera combinações únicas nunca sorteadas.
 
-        Algoritmo:
-        1. Valida dezenas_por_aposta >= MINIMO_INEGOCIAVEL (6)
-        2. Carrega histórico via HistoryProvider
-        3. Calcula espaço amostral e verifica viabilidade
-        4. Gera combinações aleatórias com random.sample()
-        5. Filtra contra histórico e contra já-geradas neste batch
-        6. Retorna lista ordenada de combinações
+        Uses secrets.SystemRandom for cryptographically secure generation.
         """
         config = JOGOS[jogo]
+        min_dezenas = MINIMO_POR_JOGO.get(jogo, 6)
 
-        if dezenas_por_aposta < MINIMO_INEGOCIAVEL:
-            raise ValueError(f"Mínimo de {MINIMO_INEGOCIAVEL} dezenas é inegociável")
+        if dezenas_por_aposta < config.min_dezenas:
+            raise ValueError(f"Mínimo de {config.min_dezenas} dezenas para {config.nome}")
+        if dezenas_por_aposta < min_dezenas:
+            raise ValueError(f"Mínimo inegociável de {min_dezenas} dezenas para {config.nome}")
+        if dezenas_por_aposta > config.max_dezenas:
+            raise ValueError(f"Máximo de {config.max_dezenas} dezenas para {config.nome}")
 
         historico = await self.history_provider.get_drawn_combinations(jogo)
 
@@ -113,8 +113,8 @@ class GeradorDeApostas:
         )
 
     def _gerar_combinacao(self, total: int, quantidade: int) -> tuple[int, ...]:
-        """Gera uma única combinação ordenada."""
-        numeros = random.sample(range(1, total + 1), quantidade)
+        """Gera uma única combinação ordenada usando secrets.SystemRandom."""
+        numeros = _rng.sample(range(1, total + 1), quantidade)
         return tuple(sorted(numeros))
 
     def _calcular_combinacoes(self, n: int, k: int) -> int:

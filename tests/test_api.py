@@ -38,6 +38,7 @@ class TestHealthEndpoint:
         data = response.json()
         assert data["status"] in ("ok", "degraded")
         assert "database" in data
+        assert "redis" in data
         assert "timestamp" in data
 
 
@@ -50,12 +51,17 @@ class TestJogosDisponiveisEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert "jogos" in data
-        assert len(data["jogos"]) == 6
+        assert len(data["jogos"]) == 11
 
         jogos = {j["jogo"] for j in data["jogos"]}
         assert "megasena" in jogos
         assert "lotofacil" in jogos
         assert "quina" in jogos
+        assert "lotomania" in jogos
+        assert "timemania" in jogos
+        assert "maismilionaria" in jogos
+        assert "supersete" in jogos
+        assert "loteca" in jogos
 
     def test_jogo_tem_campos_corretos(self, client):
         """Cada jogo deve ter todos os campos."""

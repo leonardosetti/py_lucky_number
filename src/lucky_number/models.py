@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field, model_validator
 
-from lucky_number.config import JOGOS, MINIMO_INEGOCIAVEL, Jogo
+from lucky_number.config import JOGOS, MINIMO_POR_JOGO, Jogo
 
 
 class ApostaRequest(BaseModel):
@@ -15,15 +15,16 @@ class ApostaRequest(BaseModel):
     @model_validator(mode="after")
     def validar_dezenas(self) -> "ApostaRequest":
         config = JOGOS[self.jogo]
+        min_jogo = MINIMO_POR_JOGO.get(self.jogo, 6)
 
-        if self.dezenas_por_aposta < MINIMO_INEGOCIAVEL:
-            raise ValueError(f"Mínimo de {MINIMO_INEGOCIAVEL} dezenas é inegociável")
-
+        if self.dezenas_por_aposta < config.min_dezenas:
+            raise ValueError(f"Mínimo de {config.min_dezenas} dezenas para {config.nome}")
+        if self.dezenas_por_aposta < min_jogo:
+            raise ValueError(f"Mínimo inegociável de {min_jogo} dezenas para {config.nome}")
         if self.dezenas_por_aposta > config.max_dezenas:
             raise ValueError(
                 f"Máximo de {config.max_dezenas} dezenas para {config.nome}"
             )
-
         if self.dezenas_por_aposta > config.total_dezenas:
             raise ValueError(
                 f"Não é possível apostar mais dezenas que o total "

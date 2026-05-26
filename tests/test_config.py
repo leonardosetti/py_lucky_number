@@ -13,14 +13,19 @@ class TestJogoEnum:
     """Testes para enum Jogo."""
 
     def test_todos_jogos_definidos(self):
-        """Todos os 6 jogos devem estar definidos."""
-        assert len(Jogo) == 6
+        """Todos os 11 jogos devem estar definidos."""
+        assert len(Jogo) == 11
         assert Jogo.MEGA_SENA.value == "megasena"
         assert Jogo.LOTOFACIL.value == "lotofacil"
         assert Jogo.QUINA.value == "quina"
         assert Jogo.DUPLA_SENA.value == "duplasena"
         assert Jogo.FEDERAL.value == "federal"
         assert Jogo.DIA_DE_SORTE.value == "diadesorte"
+        assert Jogo.LOTOMANIA.value == "lotomania"
+        assert Jogo.TIMEMANIA.value == "timemania"
+        assert Jogo.MAIS_MILIONARIA.value == "maismilionaria"
+        assert Jogo.SUPER_SETE.value == "supersete"
+        assert Jogo.LOTECA.value == "loteca"
 
 
 class TestJogoConfig:
@@ -28,7 +33,7 @@ class TestJogoConfig:
 
     def test_todos_jogos_tem_config(self):
         """Todos os jogos devem ter configuração."""
-        assert len(JOGOS) == 6
+        assert len(JOGOS) == 11
         for jogo in Jogo:
             assert jogo in JOGOS
             config = JOGOS[jogo]
@@ -39,9 +44,11 @@ class TestJogoConfig:
             assert config.max_dezenas >= config.min_dezenas
 
     def test_min_dezenas_respeita_inegociavel(self):
-        """Mínimo deve ser >= 5 para todos (exceto Federal)."""
+        """Mínimo deve ser >= 1 para todos, com regras específicas."""
+        jogos_livre = {Jogo.FEDERAL, Jogo.SUPER_SETE, Jogo.LOTECA}
         for jogo, config in JOGOS.items():
-            if jogo != Jogo.FEDERAL:
+            assert config.min_dezenas >= 1
+            if jogo not in jogos_livre:
                 assert config.min_dezenas >= 5, (
                     f"{jogo.value}: min_dezenas {config.min_dezenas} < 5"
                 )
