@@ -71,7 +71,7 @@ jobs:
       - name: Dependency security scan (pip-audit)
         run: |
           pip install pip-audit
-          pip-audit --requirement=requirements.txt --requirement=requirements-dev.txt --ignore-edits
+          pip-audit --requirement=requirements.txt --requirement=requirements-dev.txt --skip-editable
 
       - name: Type check (mypy)
         run: mypy src/lucky_number || true
