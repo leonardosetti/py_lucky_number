@@ -48,19 +48,19 @@ def upgrade() -> None:
             "Ganhadores 4 acertos" INTEGER DEFAULT 0,
             "Rateio 4 acertos" DECIMAL(14,2),
             "Acumulado 6 acertos" BOOLEAN DEFAULT false,
-            "Arrecadação Total" DECIMAL(14,2),
-            "Estimativa prêmio" DECIMAL(14,2),
+            "Arrecada\u00e7\u00e3o Total" DECIMAL(14,2),
+            "Estimativa pr\u00eamio" DECIMAL(14,2),
             "Acumulado Sorteio Especial Mega da Virada" BOOLEAN DEFAULT false,
-            "Observação" TEXT,
+            "Observa\u00e7\u00e3o" TEXT,
             coletado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             hash_combinacao VARCHAR(64) NOT NULL,
             dezenas_ordenadas INTEGER[] NOT NULL,
             CONSTRAINT uq_megasena_concurso UNIQUE ("Concurso"),
             CONSTRAINT uq_megasena_hash UNIQUE (hash_combinacao)
         );
-        CREATE INDEX idx_megasena_data ON loterias_resultados_megasena ("Data do Sorteio");
-        CREATE INDEX idx_megasena_dezenas ON loterias_resultados_megasena USING GIN (dezenas_ordenadas);
     """)
+    op.create_index("idx_megasena_data", "loterias_resultados_megasena", ["Data do Sorteio"])
+    op.create_index("idx_megasena_dezenas", "loterias_resultados_megasena", ["dezenas_ordenadas"], postgresql_using="gin")
 
     # ─── loterias_resultados_lotofacil ────────────────────────────
     op.execute("""
@@ -98,9 +98,9 @@ def upgrade() -> None:
             CONSTRAINT uq_lotofacil_concurso UNIQUE ("Concurso"),
             CONSTRAINT uq_lotofacil_hash UNIQUE (hash_combinacao)
         );
-        CREATE INDEX idx_lotofacil_data ON loterias_resultados_lotofacil ("Data Sorteio");
-        CREATE INDEX idx_lotofacil_dezenas ON loterias_resultados_lotofacil USING GIN (dezenas_ordenadas);
     """)
+    op.create_index("idx_lotofacil_data", "loterias_resultados_lotofacil", ["Data Sorteio"])
+    op.create_index("idx_lotofacil_dezenas", "loterias_resultados_lotofacil", ["dezenas_ordenadas"], postgresql_using="gin")
 
     # ─── loterias_resultados_quina ────────────────────────────────
     op.execute("""
@@ -131,9 +131,9 @@ def upgrade() -> None:
             CONSTRAINT uq_quina_concurso UNIQUE ("Concurso"),
             CONSTRAINT uq_quina_hash UNIQUE (hash_combinacao)
         );
-        CREATE INDEX idx_quina_data ON loterias_resultados_quina ("Data Sorteio");
-        CREATE INDEX idx_quina_dezenas ON loterias_resultados_quina USING GIN (dezenas_ordenadas);
     """)
+    op.create_index("idx_quina_data", "loterias_resultados_quina", ["Data Sorteio"])
+    op.create_index("idx_quina_dezenas", "loterias_resultados_quina", ["dezenas_ordenadas"], postgresql_using="gin")
 
     # ─── loterias_resultados_duplasena ────────────────────────────
     op.execute("""
@@ -181,9 +181,9 @@ def upgrade() -> None:
             CONSTRAINT uq_duplasena_concurso UNIQUE ("Concurso"),
             CONSTRAINT uq_duplasena_hash UNIQUE (hash_combinacao)
         );
-        CREATE INDEX idx_duplasena_data ON loterias_resultados_duplasena ("Data Sorteio");
-        CREATE INDEX idx_duplasena_dezenas ON loterias_resultados_duplasena USING GIN (dezenas_ordenadas);
     """)
+    op.create_index("idx_duplasena_data", "loterias_resultados_duplasena", ["Data Sorteio"])
+    op.create_index("idx_duplasena_dezenas", "loterias_resultados_duplasena", ["dezenas_ordenadas"], postgresql_using="gin")
 
     # ─── loterias_resultados_diadesorte ───────────────────────────
     op.execute("""
@@ -195,7 +195,7 @@ def upgrade() -> None:
             "Bola3" INTEGER NOT NULL, "Bola4" INTEGER NOT NULL,
             "Bola5" INTEGER NOT NULL, "Bola6" INTEGER NOT NULL,
             "Bola7" INTEGER NOT NULL,
-            "Mês da Sorte" INTEGER NOT NULL,
+            "M\u00eas da Sorte" INTEGER NOT NULL,
             "Ganhadores 7 acertos" INTEGER DEFAULT 0,
             "Cidade / UF" VARCHAR(150),
             "Rateio 7 acertos" DECIMAL(14,2),
@@ -217,33 +217,33 @@ def upgrade() -> None:
             CONSTRAINT uq_diadesorte_concurso UNIQUE ("Concurso"),
             CONSTRAINT uq_diadesorte_hash UNIQUE (hash_combinacao)
         );
-        CREATE INDEX idx_diadesorte_data ON loterias_resultados_diadesorte ("Data Sorteio");
-        CREATE INDEX idx_diadesorte_dezenas ON loterias_resultados_diadesorte USING GIN (dezenas_ordenadas);
     """)
+    op.create_index("idx_diadesorte_data", "loterias_resultados_diadesorte", ["Data Sorteio"])
+    op.create_index("idx_diadesorte_dezenas", "loterias_resultados_diadesorte", ["dezenas_ordenadas"], postgresql_using="gin")
 
     # ─── loterias_resultados_federal ──────────────────────────────
     op.execute("""
         CREATE TABLE loterias_resultados_federal (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            "Extração" INTEGER NOT NULL,
+            "Extra\u00e7\u00e3o" INTEGER NOT NULL,
             "Data Sorteio" DATE NOT NULL,
-            "1º prêmio" INTEGER NOT NULL,
-            "Valor 1º prêmio" DECIMAL(14,2),
-            "2º prêmio" INTEGER NOT NULL,
-            "Valor 2º prêmio" DECIMAL(14,2),
-            "3º prêmio" INTEGER NOT NULL,
-            "Valor 3º prêmio" DECIMAL(14,2),
-            "4º prêmio" INTEGER NOT NULL,
-            "Valor 4º prêmio" DECIMAL(14,2),
-            "5º prêmio" INTEGER NOT NULL,
-            "Valor 5º prêmio" DECIMAL(14,2),
+            "1\u00ba pr\u00eamio" INTEGER NOT NULL,
+            "Valor 1\u00ba pr\u00eamio" DECIMAL(14,2),
+            "2\u00ba pr\u00eamio" INTEGER NOT NULL,
+            "Valor 2\u00ba pr\u00eamio" DECIMAL(14,2),
+            "3\u00ba pr\u00eamio" INTEGER NOT NULL,
+            "Valor 3\u00ba pr\u00eamio" DECIMAL(14,2),
+            "4\u00ba pr\u00eamio" INTEGER NOT NULL,
+            "Valor 4\u00ba pr\u00eamio" DECIMAL(14,2),
+            "5\u00ba pr\u00eamio" INTEGER NOT NULL,
+            "Valor 5\u00ba pr\u00eamio" DECIMAL(14,2),
             coletado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             hash_extracao VARCHAR(64) NOT NULL,
-            CONSTRAINT uq_federal_extracao UNIQUE ("Extração"),
+            CONSTRAINT uq_federal_extracao UNIQUE ("Extra\u00e7\u00e3o"),
             CONSTRAINT uq_federal_hash UNIQUE (hash_extracao)
         );
-        CREATE INDEX idx_federal_data ON loterias_resultados_federal ("Data Sorteio");
     """)
+    op.create_index("idx_federal_data", "loterias_resultados_federal", ["Data Sorteio"])
 
     # ─── loterias_resultados_lotomania ────────────────────────────
     op.execute("""
@@ -286,9 +286,9 @@ def upgrade() -> None:
             CONSTRAINT uq_lotomania_concurso UNIQUE ("Concurso"),
             CONSTRAINT uq_lotomania_hash UNIQUE (hash_combinacao)
         );
-        CREATE INDEX idx_lotomania_data ON loterias_resultados_lotomania ("Data Sorteio");
-        CREATE INDEX idx_lotomania_dezenas ON loterias_resultados_lotomania USING GIN (dezenas_ordenadas);
     """)
+    op.create_index("idx_lotomania_data", "loterias_resultados_lotomania", ["Data Sorteio"])
+    op.create_index("idx_lotomania_dezenas", "loterias_resultados_lotomania", ["dezenas_ordenadas"], postgresql_using="gin")
 
     # ─── loterias_resultados_timemania ────────────────────────────
     op.execute("""
@@ -324,9 +324,9 @@ def upgrade() -> None:
             CONSTRAINT uq_timemania_concurso UNIQUE ("Concurso"),
             CONSTRAINT uq_timemania_hash UNIQUE (hash_combinacao)
         );
-        CREATE INDEX idx_timemania_data ON loterias_resultados_timemania ("Data Sorteio");
-        CREATE INDEX idx_timemania_dezenas ON loterias_resultados_timemania USING GIN (dezenas_ordenadas);
     """)
+    op.create_index("idx_timemania_data", "loterias_resultados_timemania", ["Data Sorteio"])
+    op.create_index("idx_timemania_dezenas", "loterias_resultados_timemania", ["dezenas_ordenadas"], postgresql_using="gin")
 
     # ─── loterias_resultados_maismilionaria ────────────────────────
     op.execute("""
@@ -371,9 +371,9 @@ def upgrade() -> None:
             CONSTRAINT uq_maismilionaria_concurso UNIQUE ("Concurso"),
             CONSTRAINT uq_maismilionaria_hash UNIQUE (hash_combinacao)
         );
-        CREATE INDEX idx_maismilionaria_data ON loterias_resultados_maismilionaria ("Data Sorteio");
-        CREATE INDEX idx_maismilionaria_dezenas ON loterias_resultados_maismilionaria USING GIN (dezenas_ordenadas);
     """)
+    op.create_index("idx_maismilionaria_data", "loterias_resultados_maismilionaria", ["Data Sorteio"])
+    op.create_index("idx_maismilionaria_dezenas", "loterias_resultados_maismilionaria", ["dezenas_ordenadas"], postgresql_using="gin")
 
     # ─── loterias_resultados_supersete ─────────────────────────────
     op.execute("""
@@ -408,8 +408,8 @@ def upgrade() -> None:
             CONSTRAINT uq_supersete_concurso UNIQUE ("Concurso"),
             CONSTRAINT uq_supersete_hash UNIQUE (hash_combinacao)
         );
-        CREATE INDEX idx_supersete_data ON loterias_resultados_supersete ("Data Sorteio");
     """)
+    op.create_index("idx_supersete_data", "loterias_resultados_supersete", ["Data Sorteio"])
 
     # ─── loterias_resultados_loteca ────────────────────────────────
     op.execute("""
@@ -444,8 +444,8 @@ def upgrade() -> None:
             CONSTRAINT uq_loteca_concurso UNIQUE ("Concurso"),
             CONSTRAINT uq_loteca_hash UNIQUE (hash_combinacao)
         );
-        CREATE INDEX idx_loteca_data ON loterias_resultados_loteca ("Data Sorteio");
     """)
+    op.create_index("idx_loteca_data", "loterias_resultados_loteca", ["Data Sorteio"])
 
 
 def downgrade() -> None:
