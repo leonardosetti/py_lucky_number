@@ -1,4 +1,5 @@
 """Data collectors for CEF lottery results."""
+
 from src.collectors.base import BaseLotteryCollector
 from src.collectors.megasena import MegasenaCollector
 from src.collectors.lotofacil import LotofacilCollector

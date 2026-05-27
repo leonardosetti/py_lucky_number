@@ -4,6 +4,7 @@ Schedule:
 - Fixed interval: every 6 hours (configurable via COLETA_INTERVALO_MINUTOS)
 - Extra check on draw days for each game
 """
+
 import logging
 import os
 
@@ -85,6 +86,7 @@ def collect_loteca(self):
 def _run_collector(collector, task):
     """Run a collector and handle errors for Celery task."""
     import asyncio
+
     try:
         result = asyncio.run(collector.collect())
         logger.info(f"[{collector.GAME_LABEL}] Coleta concluída: {result}")

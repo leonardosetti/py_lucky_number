@@ -4,6 +4,7 @@ Core business logic (Principles I + III). Gera combinações aleatórias
 filtrando contra histórico de sorteios e histórico do próprio usuário.
 Prevents CWE-338: uses secrets.SystemRandom for cryptographic security.
 """
+
 import logging
 import math
 import secrets
@@ -50,11 +51,17 @@ class GeradorDeApostas:
         min_dezenas = MINIMO_POR_JOGO.get(jogo, 6)
 
         if dezenas_por_aposta < config.min_dezenas:
-            raise ValueError(f"Mínimo de {config.min_dezenas} dezenas para {config.nome}")
+            raise ValueError(
+                f"Mínimo de {config.min_dezenas} dezenas para {config.nome}"
+            )
         if dezenas_por_aposta < min_dezenas:
-            raise ValueError(f"Mínimo inegociável de {min_dezenas} dezenas para {config.nome}")
+            raise ValueError(
+                f"Mínimo inegociável de {min_dezenas} dezenas para {config.nome}"
+            )
         if dezenas_por_aposta > config.max_dezenas:
-            raise ValueError(f"Máximo de {config.max_dezenas} dezenas para {config.nome}")
+            raise ValueError(
+                f"Máximo de {config.max_dezenas} dezenas para {config.nome}"
+            )
 
         historico = await self.history_provider.get_drawn_combinations(jogo)
 

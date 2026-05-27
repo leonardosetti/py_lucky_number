@@ -1,4 +1,5 @@
 """Feature toggle decorator for route protection."""
+
 from functools import wraps
 from fastapi import HTTPException, status
 
@@ -18,6 +19,7 @@ def require_feature(slug: str):
 
     Prevents CWE-284: Improper Access Control by checking feature activation.
     """
+
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -27,5 +29,7 @@ def require_feature(slug: str):
                     detail=f"Feature '{slug}' está indisponível",
                 )
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator

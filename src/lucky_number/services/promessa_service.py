@@ -1,4 +1,5 @@
 """Promessa service — Bet promise simulation (Principle V)."""
+
 import hashlib
 import logging
 import secrets
@@ -15,13 +16,18 @@ SHARING_TTL_DAYS = 7
 
 
 async def create_promessa(
-    user_id: str, titulo: str | None, prioridade: str, valor_total: float,
+    user_id: str,
+    titulo: str | None,
+    prioridade: str,
+    valor_total: float,
     combinacoes: list[dict],
 ) -> Promessa:
     """Create a bet promise with FIFO eviction at MAX_PROMESSAS."""
     async with async_session_factory() as session:
         count = await session.execute(
-            select(func.count()).select_from(Promessa).where(Promessa.user_id == user_id)
+            select(func.count())
+            .select_from(Promessa)
+            .where(Promessa.user_id == user_id)
         )
         total = count.scalar() or 0
 
@@ -49,7 +55,9 @@ async def create_promessa(
         return promessa
 
 
-async def list_promessas(user_id: str, page: int = 1, per_page: int = 20, prioridade: str = None) -> list[Promessa]:
+async def list_promessas(
+    user_id: str, page: int = 1, per_page: int = 20, prioridade: str = None
+) -> list[Promessa]:
     """List user promises with optional priority filter."""
     async with async_session_factory() as session:
         query = select(Promessa).where(Promessa.user_id == user_id)
@@ -65,7 +73,9 @@ async def delete_promessa(promessa_id: str, user_id: str) -> bool:
     """Delete a promise by id, ensuring ownership."""
     async with async_session_factory() as session:
         result = await session.execute(
-            select(Promessa).where(Promessa.id == promessa_id, Promessa.user_id == user_id)
+            select(Promessa).where(
+                Promessa.id == promessa_id, Promessa.user_id == user_id
+            )
         )
         promessa = result.scalar_one_or_none()
         if not promessa:
@@ -79,7 +89,9 @@ async def clone_promessa(promessa_id: str, user_id: str) -> Promessa | None:
     """Clone a promise."""
     async with async_session_factory() as session:
         result = await session.execute(
-            select(Promessa).where(Promessa.id == promessa_id, Promessa.user_id == user_id)
+            select(Promessa).where(
+                Promessa.id == promessa_id, Promessa.user_id == user_id
+            )
         )
         original = result.scalar_one_or_none()
         if not original:
@@ -101,7 +113,9 @@ async def share_promessa(promessa_id: str, user_id: str) -> str | None:
     """Generate HMAC sharing hash for a promise (7-day expiry)."""
     async with async_session_factory() as session:
         result = await session.execute(
-            select(Promessa).where(Promessa.id == promessa_id, Promessa.user_id == user_id)
+            select(Promessa).where(
+                Promessa.id == promessa_id, Promessa.user_id == user_id
+            )
         )
         promessa = result.scalar_one_or_none()
         if not promessa:

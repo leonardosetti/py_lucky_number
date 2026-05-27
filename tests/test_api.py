@@ -11,7 +11,6 @@ from lucky_number.api.auth import get_current_user
 from lucky_number.models import ApostaResponse
 from lucky_number.services.gerador import EspacoAmostralEsgotadoError
 
-
 os.environ["ENVIRONMENT"] = "test"
 
 
@@ -22,7 +21,11 @@ def client():
 
     # Override auth dependency to bypass JWT for tests
     async def override_get_current_user():
-        return {"id": "00000000-0000-0000-0000-000000000001", "email": "admin@test.com", "role": "admin"}
+        return {
+            "id": "00000000-0000-0000-0000-000000000001",
+            "email": "admin@test.com",
+            "role": "admin",
+        }
 
     app.dependency_overrides[get_current_user] = override_get_current_user
     return TestClient(app)

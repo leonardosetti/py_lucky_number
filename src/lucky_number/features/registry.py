@@ -1,4 +1,5 @@
 """In-memory feature registry with cache and TTL-based invalidation."""
+
 import time
 from typing import Optional
 

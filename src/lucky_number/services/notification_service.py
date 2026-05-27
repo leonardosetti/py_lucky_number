@@ -4,6 +4,7 @@ Abstrai o envio de notificações transacionais: reset de senha,
 códigos de ativação, alertas. Suporta email (SMTP/Resend) e
 WhatsApp (Twilio API).
 """
+
 import logging
 import os
 from dataclasses import dataclass
@@ -46,12 +47,16 @@ class EmailChannel:
     async def send(self, to: str, subject: str, body_html: str) -> bool:
         """Send an HTML email. Returns True on success, False on failure."""
         if not self.config.user or not self.config.password:
-            logger.warning("Email not configured — skipping send to %s", _mask_email(to))
+            logger.warning(
+                "Email not configured — skipping send to %s", _mask_email(to)
+            )
             return False
         try:
             import aiosmtplib
 
-            message = _build_email_message(self.config.from_email, self.config.from_name, to, subject, body_html)
+            message = _build_email_message(
+                self.config.from_email, self.config.from_name, to, subject, body_html
+            )
             await aiosmtplib.send(
                 message,
                 hostname=self.config.host,
@@ -80,7 +85,9 @@ class WhatsAppChannel:
     async def send(self, to: str, message: str) -> bool:
         """Send a WhatsApp message. Returns True on success, False on failure."""
         if not self.config.account_sid or not self.config.auth_token:
-            logger.warning("Twilio not configured — skipping WhatsApp to %s", _mask_phone(to))
+            logger.warning(
+                "Twilio not configured — skipping WhatsApp to %s", _mask_phone(to)
+            )
             return False
         try:
             from twilio.rest import Client
@@ -151,7 +158,9 @@ def _mask_phone(phone: str) -> str:
     return phone[:3] + "***" + phone[-4:] if len(phone) > 7 else "***"
 
 
-def _build_email_message(from_email: str, from_name: str, to: str, subject: str, body_html: str):
+def _build_email_message(
+    from_email: str, from_name: str, to: str, subject: str, body_html: str
+):
     """Build an email Message object."""
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
@@ -172,7 +181,7 @@ def _reset_email_html(link: str) -> str:
 <p>Você solicitou a redefinição da sua senha no <strong>Lucky Number</strong>.</p>
 <p>Clique no botão abaixo para criar uma nova senha. Este link expira em 20 minutos.</p>
 <p style="text-align:center;margin:32px 0">
-  <a href="{link}" style="background:#4F46E5;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:16px">
+  <a href="{link}" style="background:#4F46E5;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:16px">  # noqa: E501
     Redefinir senha
   </a>
 </p>
@@ -197,7 +206,7 @@ def _activation_email_html(code: str) -> str:
 <html><body style="font-family:Arial,sans-serif;padding:24px">
 <h2>Ativação de conta</h2>
 <p>Seu código de ativação do <strong>Lucky Number</strong> é:</p>
-<p style="font-size:32px;letter-spacing:8px;text-align:center;font-weight:bold;margin:24px 0">{code}</p>
+<p style="font-size:32px;letter-spacing:8px;text-align:center;font-weight:bold;margin:24px 0">{code}</p>  # noqa: E501
 <p>Este código expira em 24 horas.</p>
 <hr><small>Lucky Number — Gerador de Combinações</small>
 </body></html>"""

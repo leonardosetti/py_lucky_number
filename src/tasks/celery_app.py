@@ -1,4 +1,5 @@
 """Celery application for Lucky Number scheduled tasks."""
+
 import os
 
 from celery import Celery

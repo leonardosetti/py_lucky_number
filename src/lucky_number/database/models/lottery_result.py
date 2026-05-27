@@ -9,6 +9,7 @@ This module provides:
 - game_table(): returns table name for a Jogo
 - DatabaseHistoryProvider: queries drawn combinations for the generator
 """
+
 import logging
 
 from sqlalchemy import text
@@ -59,7 +60,7 @@ class DatabaseHistoryProvider(HistoryProvider):
 
         try:
             result = await self._session.execute(
-                text(f'SELECT dezenas_ordenadas FROM {table}')
+                text(f"SELECT dezenas_ordenadas FROM {table}")
             )
             rows = result.all()
             drawn: set[tuple[int, ...]] = set()
@@ -68,5 +69,7 @@ class DatabaseHistoryProvider(HistoryProvider):
             logger.info(f"{jogo.value}: {len(drawn)} drawn combinations loaded")
             return drawn
         except Exception:
-            logger.warning(f"Could not load drawn combinations for {jogo.value}", exc_info=True)
+            logger.warning(
+                f"Could not load drawn combinations for {jogo.value}", exc_info=True
+            )
             return set()

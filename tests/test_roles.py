@@ -1,4 +1,5 @@
 """Testes para roles e permissões (Spec 003)."""
+
 from lucky_number.database.models.role import Role
 from lucky_number.database.models.permission import Permission
 from lucky_number.database.models.role_permission import RolePermission

@@ -8,6 +8,7 @@ All collectors inherit from this class, sharing:
 - Bulk insert via asyncpg copy_from with error handling
 - Prometheus metrics per game
 """
+
 import abc
 import hashlib
 import logging
@@ -69,8 +70,12 @@ class BaseLotteryCollector(abc.ABC):
         df = pl.read_excel(content)
         for col in self.COLUMNS:
             if col not in df.columns:
-                logger.error(f"Coluna esperada '{col}' não encontrada em {self.GAME_LABEL}")
-                raise ValueError(f"Coluna '{col}' ausente na planilha {self.GAME_LABEL}")
+                logger.error(
+                    f"Coluna esperada '{col}' não encontrada em {self.GAME_LABEL}"
+                )
+                raise ValueError(
+                    f"Coluna '{col}' ausente na planilha {self.GAME_LABEL}"
+                )
         return df
 
     def get_last_contest_from_json(self) -> int:
@@ -129,7 +134,10 @@ class BaseLotteryCollector(abc.ABC):
             with open(path, "rb") as f:
                 data = orjson.loads(f.read())
         else:
-            data = {"meta": {"jogo": self.GAME_LABEL, "url_origem": self.URL}, "concursos": []}
+            data = {
+                "meta": {"jogo": self.GAME_LABEL, "url_origem": self.URL},
+                "concursos": [],
+            }
 
         data["concursos"].extend(new_records)
         data["meta"]["total_concursos"] = len(data["concursos"])
@@ -168,7 +176,7 @@ class BaseLotteryCollector(abc.ABC):
         return len(records)
 
     async def collect(self) -> dict[str, Any]:
-        """Main collection pipeline: download -> parse -> filter -> enrich -> save -> insert."""
+        """Main collection pipeline: download -> parse -> filter -> enrich -> save -> insert."""  # noqa: E501
         logger.info(f"[{self.GAME_LABEL}] Iniciando coleta...")
 
         content = await self.download_excel()

@@ -49,9 +49,9 @@ class TestJogoConfig:
         for jogo, config in JOGOS.items():
             assert config.min_dezenas >= 1
             if jogo not in jogos_livre:
-                assert config.min_dezenas >= 5, (
-                    f"{jogo.value}: min_dezenas {config.min_dezenas} < 5"
-                )
+                assert (
+                    config.min_dezenas >= 5
+                ), f"{jogo.value}: min_dezenas {config.min_dezenas} < 5"
 
     def test_max_dezenas_nao_excede_total(self):
         """Max dezenas não pode exceder total de dezenas."""

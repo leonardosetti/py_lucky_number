@@ -1,10 +1,13 @@
 """Async database engine and session factory for Lucky Number."""
+
 import os
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://lucky:lucky@localhost:5432/lucky_dev")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql+asyncpg://lucky:lucky@localhost:5432/lucky_dev"
+)
 
 engine = create_async_engine(
     DATABASE_URL,
@@ -14,7 +17,9 @@ engine = create_async_engine(
     pool_recycle=3600,
 )
 
-async_session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+async_session_factory = async_sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:

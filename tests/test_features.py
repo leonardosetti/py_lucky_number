@@ -1,4 +1,5 @@
 """Testes para o sistema de Feature Toggles (Spec 002)."""
+
 from lucky_number.database.models.feature_toggle import FeatureToggle
 from lucky_number.database.models.feature_toggle_audit import FeatureToggleAudit
 

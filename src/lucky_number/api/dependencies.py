@@ -1,4 +1,5 @@
 """FastAPI dependencies for Lucky Number."""
+
 from functools import lru_cache
 from typing import AsyncGenerator
 
@@ -19,6 +20,7 @@ async def require_permission(slug: str):
     """Dependency that checks RBAC permission via role_permissions table.
     Prevents CWE-284: Improper Access Control.
     """
+
     async def check_permission(current_user: dict = Depends(get_current_user)):
         role = current_user.get("role", "")
         if role == "admin":
@@ -46,6 +48,7 @@ async def require_permission(slug: str):
                     detail=f"Permissão necessária: {slug}",
                 )
         return current_user
+
     return check_permission
 
 

@@ -1,4 +1,5 @@
 """AuditLog SQLAlchemy model — immutable INSERT-only audit trail."""
+
 import uuid
 from datetime import datetime
 
@@ -18,13 +19,9 @@ class AuditLog(Base):
     admin_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
-    acao: Mapped[str] = mapped_column(
-        String(20), nullable=False
-    )
+    acao: Mapped[str] = mapped_column(String(20), nullable=False)
     entidade_tipo: Mapped[str] = mapped_column(String(50), nullable=False)
-    entidade_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), nullable=False
-    )
+    entidade_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     detalhes: Mapped[dict] = mapped_column(
         JSON, nullable=False, default=dict, server_default=func.cast("{}", JSON)
     )
@@ -32,9 +29,7 @@ class AuditLog(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    __table_args__ = (
-        {"postgresql_partition_by": "RANGE (created_at)"}
-    )
+    __table_args__ = {"postgresql_partition_by": "RANGE (created_at)"}
 
     def __repr__(self) -> str:
         return f"<AuditLog {self.acao} {self.entidade_tipo} by {self.admin_id}>"

@@ -1,4 +1,5 @@
 """Export & Share service — CSV, JSON, PDF generation and WhatsApp sharing."""
+
 import csv
 import io
 import json
@@ -16,10 +17,17 @@ async def get_user_combinations(user_id: str) -> list[dict]:
     """Fetch all combinations for a user."""
     async with async_session_factory() as session:
         result = await session.execute(
-            select(Combinacao).where(Combinacao.user_id == user_id).order_by(Combinacao.created_at.desc())
+            select(Combinacao)
+            .where(Combinacao.user_id == user_id)
+            .order_by(Combinacao.created_at.desc())
         )
         return [
-            {"jogo": c.jogo, "dezenas": c.dezenas, "favorita": c.favorita, "created_at": str(c.created_at.date())}
+            {
+                "jogo": c.jogo,
+                "dezenas": c.dezenas,
+                "favorita": c.favorita,
+                "created_at": str(c.created_at.date()),
+            }
             for c in result.scalars().all()
         ]
 
@@ -89,7 +97,9 @@ def format_clipboard(combinations: list[dict]) -> str:
     return "\n".join(lines)
 
 
-async def share_with_user(sender_id: str, recipient_id: str, combinations: list[dict]) -> bool:
+async def share_with_user(
+    sender_id: str, recipient_id: str, combinations: list[dict]
+) -> bool:
     """Share combinations with another user via notification."""
     text = format_whatsapp_text(combinations)
     async with async_session_factory() as session:

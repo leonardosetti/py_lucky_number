@@ -1,4 +1,5 @@
 """HTTPX client factory and retry logic for data collectors."""
+
 import asyncio
 import logging
 
@@ -28,11 +29,13 @@ async def download_with_retry(url: str, timeout: httpx.Timeout = None) -> bytes:
             logger.warning(f"Timeout (tentativa {attempt}/{MAX_RETRIES}): {url}")
             last_exception = e
             if attempt < MAX_RETRIES:
-                await asyncio.sleep(2 ** attempt)  # exponential backoff
+                await asyncio.sleep(2**attempt)  # exponential backoff
         except httpx.HTTPError as e:
             logger.error(f"HTTP error (tentativa {attempt}/{MAX_RETRIES}): {e}")
             last_exception = e
             if attempt < MAX_RETRIES:
-                await asyncio.sleep(2 ** attempt)
+                await asyncio.sleep(2**attempt)
 
-    raise last_exception or RuntimeError(f"Falha ao baixar {url} após {MAX_RETRIES} tentativas")
+    raise last_exception or RuntimeError(
+        f"Falha ao baixar {url} após {MAX_RETRIES} tentativas"
+    )

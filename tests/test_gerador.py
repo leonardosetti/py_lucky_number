@@ -177,10 +177,14 @@ class TestEspacoAmostral:
     async def test_espaco_amostral_esgotado(self, mock_history):
         """Deve lançar erro quando espaço amostral esgotado."""
         historico_grande = {
-            (1, 2, 3, 4, 5, 6), (1, 2, 3, 4, 5, 7),
-            (1, 2, 3, 4, 5, 8), (1, 2, 3, 4, 5, 9),
-            (1, 2, 3, 4, 5, 10), (1, 2, 3, 4, 6, 7),
-            (1, 2, 3, 4, 6, 8), (1, 2, 3, 4, 6, 9),
+            (1, 2, 3, 4, 5, 6),
+            (1, 2, 3, 4, 5, 7),
+            (1, 2, 3, 4, 5, 8),
+            (1, 2, 3, 4, 5, 9),
+            (1, 2, 3, 4, 5, 10),
+            (1, 2, 3, 4, 6, 7),
+            (1, 2, 3, 4, 6, 8),
+            (1, 2, 3, 4, 6, 9),
             (1, 2, 3, 4, 6, 10),
         }
         mock_history.get_drawn_combinations = AsyncMock(return_value=historico_grande)

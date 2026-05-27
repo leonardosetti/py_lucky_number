@@ -1,4 +1,5 @@
 """Combinacao service — FIFO user combination history (Principle IV)."""
+
 import hashlib
 import logging
 
@@ -12,7 +13,9 @@ logger = logging.getLogger(__name__)
 MAX_COMBINACOES = 200
 
 
-async def save_combinacao(user_id: str, jogo: str, dezenas: list[int], dezenas_por_aposta: int) -> Combinacao:
+async def save_combinacao(
+    user_id: str, jogo: str, dezenas: list[int], dezenas_por_aposta: int
+) -> Combinacao:
     """Save a combination with FIFO eviction at MAX_COMBINACOES.
     Prevents CWE-89: parameterized queries via SQLAlchemy.
     """
@@ -27,7 +30,9 @@ async def save_combinacao(user_id: str, jogo: str, dezenas: list[int], dezenas_p
             raise ValueError("Combinação já existe")
 
         count = await session.execute(
-            select(func.count()).select_from(Combinacao).where(Combinacao.user_id == user_id)
+            select(func.count())
+            .select_from(Combinacao)
+            .where(Combinacao.user_id == user_id)
         )
         total = count.scalar() or 0
 
@@ -55,7 +60,9 @@ async def save_combinacao(user_id: str, jogo: str, dezenas: list[int], dezenas_p
         return combo
 
 
-async def list_combinacoes(user_id: str, page: int = 1, per_page: int = 20, jogo: str = None) -> list[Combinacao]:
+async def list_combinacoes(
+    user_id: str, page: int = 1, per_page: int = 20, jogo: str = None
+) -> list[Combinacao]:
     """List user combinations with optional game filter and pagination."""
     async with async_session_factory() as session:
         query = select(Combinacao).where(Combinacao.user_id == user_id)
@@ -71,7 +78,9 @@ async def delete_combinacao(combinacao_id: str, user_id: str) -> bool:
     """Delete a combination by id, ensuring ownership."""
     async with async_session_factory() as session:
         result = await session.execute(
-            select(Combinacao).where(Combinacao.id == combinacao_id, Combinacao.user_id == user_id)
+            select(Combinacao).where(
+                Combinacao.id == combinacao_id, Combinacao.user_id == user_id
+            )
         )
         combo = result.scalar_one_or_none()
         if not combo:
@@ -85,7 +94,9 @@ async def toggle_favorita(combinacao_id: str, user_id: str) -> bool | None:
     """Toggle favorite status. Returns new state or None if not found."""
     async with async_session_factory() as session:
         result = await session.execute(
-            select(Combinacao).where(Combinacao.id == combinacao_id, Combinacao.user_id == user_id)
+            select(Combinacao).where(
+                Combinacao.id == combinacao_id, Combinacao.user_id == user_id
+            )
         )
         combo = result.scalar_one_or_none()
         if not combo:

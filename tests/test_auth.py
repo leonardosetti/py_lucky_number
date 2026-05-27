@@ -1,7 +1,13 @@
 """Testes para o sistema de autenticação (Spec 003)."""
+
 import pytest
 
-from lucky_number.api.auth import create_access_token, decode_jwt, hash_password, verify_password
+from lucky_number.api.auth import (
+    create_access_token,
+    decode_jwt,
+    hash_password,
+    verify_password,
+)
 
 
 class TestPasswordHashing:

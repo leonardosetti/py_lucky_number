@@ -18,9 +18,13 @@ class ApostaRequest(BaseModel):
         min_jogo = MINIMO_POR_JOGO.get(self.jogo, 6)
 
         if self.dezenas_por_aposta < config.min_dezenas:
-            raise ValueError(f"Mínimo de {config.min_dezenas} dezenas para {config.nome}")
+            raise ValueError(
+                f"Mínimo de {config.min_dezenas} dezenas para {config.nome}"
+            )
         if self.dezenas_por_aposta < min_jogo:
-            raise ValueError(f"Mínimo inegociável de {min_jogo} dezenas para {config.nome}")
+            raise ValueError(
+                f"Mínimo inegociável de {min_jogo} dezenas para {config.nome}"
+            )
         if self.dezenas_por_aposta > config.max_dezenas:
             raise ValueError(
                 f"Máximo de {config.max_dezenas} dezenas para {config.nome}"
