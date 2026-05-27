@@ -37,17 +37,19 @@ jobs:
 
       - name: Scan image for vulnerabilities
         run: |
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$(pwd):/results" \
             aquasec/trivy:latest image \
             --severity CRITICAL,HIGH \
             --format sarif \
-            --output trivy-results.sarif \
+            --output /results/trivy-results.sarif \
             --exit-code 0 \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}
 
       - name: Upload Trivy scan results to GitHub Security tab
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-results.sarif
 
