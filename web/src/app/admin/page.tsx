@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { notifications, features as featuresApi, getStoredToken } from "@/services/api";
+import { features as featuresApi, getStoredToken } from "@/services/api";
 
 export default function AdminPage() {
   const router = useRouter();

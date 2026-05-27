@@ -9,7 +9,7 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     if (!getStoredToken()) { router.push("/login"); return; }
-    notifications.list().then(setItems).catch(() => router.push("/login"));
+    notifications.list().then((data) => setItems(data as Array<{ id: string; lida: boolean; created_at: string }>)).catch(() => router.push("/login"));
   }, [router]);
 
   const markRead = async (id: string) => {
