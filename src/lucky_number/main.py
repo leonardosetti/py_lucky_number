@@ -95,10 +95,10 @@ def main():
 
     uvicorn.run(
         "lucky_number.main:app",
-        host=os.getenv("HOST", "0.0.0.0"),
+        host=os.getenv("HOST", "0.0.0.0"),  # nosec
         port=8000,
         reload=True,
-    )  # nosec
+    )
 
 
 if __name__ == "__main__":
