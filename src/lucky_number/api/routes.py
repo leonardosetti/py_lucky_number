@@ -89,7 +89,7 @@ async def register(email: str, password: str, nome: str = ""):
         token = create_access_token(
             {"sub": str(user.id), "email": user.email, "role": "Apostador"}
         )
-        return {"access_token": token, "token_type": "bearer"}
+        return {"access_token": token, "token_type": os.getenv("TOKEN_TYPE", "bearer")}
 
 
 @router.post("/auth/login")
@@ -108,14 +108,14 @@ async def login(email: str, password: str):
         token = create_access_token(
             {"sub": str(user.id), "email": user.email, "role": str(user.role_id)}
         )
-        return {"access_token": token, "token_type": "bearer"}
+        return {"access_token": token, "token_type": os.getenv("TOKEN_TYPE", "bearer")}
 
 
 @router.post("/auth/refresh")
 async def refresh_token(current_user=Depends(get_current_user)):
     """Refresh JWT token."""
     token = create_access_token(current_user)
-    return {"access_token": token, "token_type": "bearer"}
+    return {"access_token": token, "token_type": os.getenv("TOKEN_TYPE", "bearer")}
 
 
 @router.post("/auth/logout")

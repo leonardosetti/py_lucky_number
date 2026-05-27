@@ -93,7 +93,7 @@ async def index():
 def main():
     import uvicorn
 
-    uvicorn.run("lucky_number.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("lucky_number.main:app", host=os.getenv("HOST", "0.0.0.0"), port=8000, reload=True)  # nosec
 
 
 if __name__ == "__main__":

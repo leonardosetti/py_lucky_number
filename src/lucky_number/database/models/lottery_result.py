@@ -60,7 +60,7 @@ class DatabaseHistoryProvider(HistoryProvider):
 
         try:
             result = await self._session.execute(
-                text(f"SELECT dezenas_ordenadas FROM {table}")
+                text("SELECT dezenas_ordenadas FROM :table").bindparams(table=table)
             )
             rows = result.all()
             drawn: set[tuple[int, ...]] = set()
