@@ -241,4 +241,22 @@ Nenhuma spec cobre a integração Redis + sessão.
 
 Módulos como `auth.py`, `routes.py`, `combinacao_service.py`, `promessa_service.py`, `notification_service.py` e `share_service.py` dependem de conexão com PostgreSQL via SQLAlchemy async, que não está disponível no CI sem um banco de testes populado. Cobertura geral ficou em ~47%.
 
-**Próximo passo:** Criar fixtures de banco em memória (SQLite via `aiosqlite`) ou usar `pytest-asyncio` com banco de testes dedicado no CI para aumentar cobertura desses módulos para ≥70%.
+**Benchmark — Banco dedicado vs aiosqlite para testes**
+
+| Critério | Banco PostgreSQL dedicado | aiosqlite (SQLite em memória) |
+|---|---|---|
+| **Fidelidade** | ✅ Mesmo dialeto, tipos, funções, constraints e comportamentos de produção | ⚠️ Dialeto diferente (SQLite não suporta `ARRAY`, `JSONB` indexado, `ENUM` nativo, `ILIKE`, `NOWAIT`); migrações Alembic podem falhar |
+| **Velocidade** | ⏱ Lento — ~3–8s por setup/teardown de schema + conexão TCP | ⚡ Rápido — ~0.1–0.3s por sessão (arquivo em `:memory:`) |
+| **Paralelismo** | ✅ `pytest-xdist` – cada worker pode ter seu próprio banco (nome dinâmico) | ❌ SQLite `:memory:` não é compartilhável entre processos; requer `pytest-xdist --dist loadscope` |
+| **Migrações (Alembic)** | ✅ `alembic upgrade head` real pode ser testado | ❌ SQLite não roda migrações que usam tipos PostgreSQL |
+| **Setup CI** | Médio — precisa de serviço `postgres` no workflow (já existe no CI) | ✅ Zero — sem dependência externa |
+| **Manutenção** | Média — gerenciar schemas, drops, locks entre workers | ✅ Baixa — limpeza automática no fim de cada fixture |
+| **Cobertura realista** | ✅ Testa interações reais com o banco (transações, concorrência, deadlocks) | ⚠️ SQLite não valida queries PostgreSQL; falsos positivos de "funciona" |
+
+**Recomendação:** Usar **PostgreSQL dedicado** para testes de integração (camada de dados, repositórios, serviços que fazem queries complexas) e **aiosqlite** para testes unitários de serviços que usam banco apenas como storage simples. Estratégia híbrida:
+
+1. **Camada de domínio/regra de negócio** → aiosqlite (rápido, sem dependência)
+2. **Camada de dados (queries, transações, concorrência)** → PostgreSQL dedicado no CI (já configurado como service)
+3. **Migrações Alembic** → sempre contra PostgreSQL real
+
+**Próximo passo:** Implementar `pytest.fixture` com escopo `function` que aceite `--db-backend` (postgres ou sqlite), usando o service PostgreSQL já existente no CI e SQLite local para desenvolvimento offline.
