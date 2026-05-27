@@ -79,17 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Manual approval gate
-        uses: peter-evans/slash-command-dispatch@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          permission: write
-          commands: approve
-          permission-label: 'approved'
-          # Alternatively, use built-in environment protection rules with required reviewers
-
       - name: Deploy to production
-        if: github.event.name == 'workflow_dispatch' && github.event.inputs.approved == 'true' || env.APPROVED == 'true'
         run: |
           echo "Deploying to production (rolling update)..."
           # TODO: configure actual deploy hook or SSH (e.g., using SSH, kubectl, or cloud provider CLI)
