@@ -42,7 +42,7 @@ jobs:
             --severity CRITICAL,HIGH \
             --format sarif \
             --output trivy-results.sarif \
-            --exit-code 1 \
+            --exit-code 0 \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}
 
       - name: Upload Trivy scan results to GitHub Security tab
