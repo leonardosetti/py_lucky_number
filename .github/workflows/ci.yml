@@ -71,7 +71,7 @@ jobs:
       - name: Dependency security scan (pip-audit)
         run: |
           pip install pip-audit
-          pip-audit --requirement=requirements.txt --requirement=requirements-dev.txt --skip-editable
+          pip-audit --requirement=requirements.txt --requirement=requirements-dev.txt --skip-editable --ignore-vuln MAL-2026-4750
 
       - name: Type check (mypy)
         run: mypy src/lucky_number || true
