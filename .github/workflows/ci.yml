@@ -11,6 +11,7 @@ on:
 env:
   ENVIRONMENT: test
   DATABASE_URL: postgresql+asyncpg://lucky:lucky@localhost:5432/lucky_test
+  JWT_SECRET_KEY: test-secret-key-not-for-production
 
 jobs:
   test:
