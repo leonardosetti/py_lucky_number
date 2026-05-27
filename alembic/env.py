@@ -18,7 +18,10 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL", "postgresql://lucky:lucky@localhost:5432/lucky_dev"))
+db_url = os.getenv("DATABASE_URL", "postgresql://lucky:lucky@localhost:5432/lucky_dev")
+if "+asyncpg" in db_url:
+    db_url = db_url.replace("+asyncpg", "")
+config.set_main_option("sqlalchemy.url", db_url)
 
 
 def run_migrations_offline() -> None:
