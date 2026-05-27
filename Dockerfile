@@ -9,10 +9,11 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /app
 COPY requirements*.txt pyproject.toml ./
-RUN pip install --no-cache-dir -r requirements-dev.txt && \
-    pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir -r requirements-dev.txt
 
 COPY src/ ./src/
+RUN pip install --no-cache-dir -e .
+
 COPY alembic.ini alembic/ ./
 COPY scripts/ ./scripts/
 
