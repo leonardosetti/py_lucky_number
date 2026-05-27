@@ -230,7 +230,15 @@ Nenhuma spec cobre a integração Redis + sessão.
 | 🔴 Inconsistências em specs existentes | 0 |
 | 🟡 Melhorias em specs / APIs faltantes | 4 |
 | 🟢 Ajustes no Plan | 1 |
-| 🟡 Pendências técnicas (testes, Redis) | 3 |
+| 🟡 Pendências técnicas (testes, Redis, cobertura) | 4 |
 | ✅ Resolvidos nesta iteração | 25+ |
 
-**Total de TODOs pendentes**: ~10 itens (pendências de implementação, testes, Redis)
+**Total de TODOs pendentes**: ~11 itens (pendências de implementação, testes, Redis)
+
+---
+
+### 🟡 Cobertura de testes — módulos que dependem de banco
+
+Módulos como `auth.py`, `routes.py`, `combinacao_service.py`, `promessa_service.py`, `notification_service.py` e `share_service.py` dependem de conexão com PostgreSQL via SQLAlchemy async, que não está disponível no CI sem um banco de testes populado. Cobertura geral ficou em ~47%.
+
+**Próximo passo:** Criar fixtures de banco em memória (SQLite via `aiosqlite`) ou usar `pytest-asyncio` com banco de testes dedicado no CI para aumentar cobertura desses módulos para ≥70%.
